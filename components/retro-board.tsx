@@ -19,6 +19,7 @@ import {
   MoreVertical,
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Timer } from "@/components/timer"
 import type { RetroItem, RetroBoard as RetroBoardType } from "@/lib/redis"
 
 interface RetroBoardProps {
@@ -230,6 +231,9 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Timer Component */}
+              <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} />
+
               {board.isArchived && (
                 <Button
                   variant="outline"
@@ -264,7 +268,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="z-50">
+                    <DropdownMenuContent align="end" className="z-50 bg-white">
                       <DropdownMenuItem onClick={archiveBoard} className="cursor-pointer">
                         <Archive className="w-4 h-4 mr-2" />
                         Archive Board

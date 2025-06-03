@@ -25,4 +25,9 @@ export interface RetroBoard {
   isArchived: boolean
   archivedAt?: number
   archivedBy?: string
+  timer?: {
+    startTime: number
+    durationMinutes: number
+    isActive: boolean
+  }
 }

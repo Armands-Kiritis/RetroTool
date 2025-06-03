@@ -273,8 +273,11 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                                       <MoreVertical className="w-4 h-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="z-50">
-                                    <DropdownMenuItem onClick={(e) => archiveBoard(board.id, e)}>
+                                  <DropdownMenuContent align="end" className="z-50 bg-white">
+                                    <DropdownMenuItem
+                                      onClick={(e) => archiveBoard(board.id, e)}
+                                      className="cursor-pointer"
+                                    >
                                       <Archive className="w-4 h-4 mr-2" />
                                       Archive Board
                                     </DropdownMenuItem>
