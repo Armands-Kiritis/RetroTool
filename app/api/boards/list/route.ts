@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url)
     const includeArchived = url.searchParams.get("includeArchived") === "true"
+    const userId = url.searchParams.get("userId")
 
     // Get all board keys
     const keys = await redis.keys("board:*")
@@ -16,15 +17,17 @@ export async function GET(request: NextRequest) {
     // Get all boards
     const boards = await redis.mget<RetroBoard[]>(...keys)
 
-    // Filter out null values and apply archive filter
+    // Filter out null values and apply filters
     const validBoards = boards
       .filter((board): board is RetroBoard => board !== null)
       .filter((board) => includeArchived || !board.isArchived)
+      .filter((board) => !userId || board.createdByUserId === userId)
       .sort((a, b) => b.createdAt - a.createdAt)
       .map((board) => ({
         id: board.id,
         name: board.name,
         createdBy: board.createdBy,
+        createdByUserId: board.createdByUserId,
         createdAt: board.createdAt,
         participantCount: board.participants.length,
         itemCount: board.items.length,

@@ -18,6 +18,8 @@ import {
   ArchiveRestore,
   AlertCircle,
   MoreVertical,
+  LogOut,
+  User,
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Timer } from "@/components/timer"
@@ -30,7 +32,7 @@ interface RetroBoardProps {
 }
 
 export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
-  const { user } = useUser()
+  const { user, clearUser } = useUser()
   const { t } = useLanguage()
   const [board, setBoard] = useState<RetroBoardType | null>(null)
   const [items, setItems] = useState<RetroItem[]>([])
@@ -71,7 +73,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         body: JSON.stringify({
           content: newItems[category],
           category,
-          authorName: user.name,
+          authorName: user.username || user.name,
         }),
       })
 
@@ -94,7 +96,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          authorName: user.name,
+          authorName: user.username || user.name,
         }),
       })
 
@@ -119,7 +121,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "archive",
-          userName: user.name,
+          userName: user.username || user.name,
         }),
       })
 
@@ -140,7 +142,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "unarchive",
-          userName: user.name,
+          userName: user.username || user.name,
         }),
       })
 
@@ -156,6 +158,10 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     const url = `${window.location.origin}?board=${boardId}`
     navigator.clipboard.writeText(url)
     alert(t("common.copySuccess"))
+  }
+
+  const handleLogout = () => {
+    clearUser()
   }
 
   const getItemsByCategory = (category: "glad" | "mad" | "sad") => {
@@ -197,7 +203,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     )
   }
 
-  const isCreator = board.createdBy === user?.name
+  const isCreator = board.createdBy === (user?.username || user?.name)
 
   return (
     <div className="min-h-screen main-bg">
@@ -240,6 +246,26 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
             <div className="flex items-center gap-2">
               {/* Language Switcher */}
               <LanguageSwitcher />
+
+              {/* User Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/10 border-white/20 text-menu hover:bg-white/20"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    {user?.username || user?.name}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="z-50 bg-white">
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    {t("common.logout")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Timer Component */}
               <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} />
@@ -349,7 +375,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
-                            {item.isRevealed || item.authorName === user?.name ? (
+                            {item.isRevealed || item.authorName === (user?.username || user?.name) ? (
                               <div>
                                 <p className="text-sm text-primary-custom">{item.content}</p>
                                 <div className="flex items-center gap-2 mt-2">
@@ -368,7 +394,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                             )}
                           </div>
 
-                          {item.authorName === user?.name && !board.isArchived && (
+                          {item.authorName === (user?.username || user?.name) && !board.isArchived && (
                             <Button
                               variant="ghost"
                               size="sm"

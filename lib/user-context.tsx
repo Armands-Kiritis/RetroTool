@@ -4,8 +4,9 @@ import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 
 interface User {
-  name: string
   id: string
+  username: string
+  name?: string // Display name for backwards compatibility
 }
 
 interface UserContextType {
@@ -13,6 +14,7 @@ interface UserContextType {
   setUser: (user: User) => void
   clearUser: () => void
   isLoading: boolean
+  isAuthenticated: boolean
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -26,7 +28,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     try {
       const savedUser = localStorage.getItem("retro-user")
       if (savedUser) {
-        setUserState(JSON.parse(savedUser))
+        const parsedUser = JSON.parse(savedUser)
+        setUserState(parsedUser)
       }
     } catch (error) {
       console.error("Failed to load user from localStorage:", error)
@@ -36,9 +39,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const setUser = (user: User) => {
-    setUserState(user)
+    // Add display name for backwards compatibility
+    const userWithName = { ...user, name: user.username }
+    setUserState(userWithName)
     try {
-      localStorage.setItem("retro-user", JSON.stringify(user))
+      localStorage.setItem("retro-user", JSON.stringify(userWithName))
     } catch (error) {
       console.error("Failed to save user to localStorage:", error)
     }
@@ -53,7 +58,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  return <UserContext.Provider value={{ user, setUser, clearUser, isLoading }}>{children}</UserContext.Provider>
+  return (
+    <UserContext.Provider
+      value={{
+        user,
+        setUser,
+        clearUser,
+        isLoading,
+        isAuthenticated: !!user?.id,
+      }}
+    >
+      {children}
+    </UserContext.Provider>
+  )
 }
 
 export function useUser() {

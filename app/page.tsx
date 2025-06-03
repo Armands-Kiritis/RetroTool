@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { useUser } from "@/lib/user-context"
-import { NameEntry } from "@/components/name-entry"
+import { AuthWrapper } from "@/components/auth/auth-wrapper"
 import { BoardSelection } from "@/components/board-selection"
 import { RetroBoard } from "@/components/retro-board"
 
@@ -31,11 +31,6 @@ function HomeContent() {
     window.history.pushState({}, "", "/")
   }
 
-  // Show name entry if user hasn't entered their name
-  if (!user) {
-    return <NameEntry />
-  }
-
   // Show board if one is selected
   if (currentBoardId) {
     return <RetroBoard boardId={currentBoardId} onLeaveBoard={handleLeaveBoard} />
@@ -47,14 +42,16 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      }
-    >
-      <HomeContent />
-    </Suspense>
+    <AuthWrapper>
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          </div>
+        }
+      >
+        <HomeContent />
+      </Suspense>
+    </AuthWrapper>
   )
 }

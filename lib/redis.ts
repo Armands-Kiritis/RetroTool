@@ -19,6 +19,7 @@ export interface RetroBoard {
   id: string
   name: string
   createdBy: string
+  createdByUserId?: string // Add user ID for filtering
   createdAt: number
   items: RetroItem[]
   participants: string[]
@@ -30,4 +31,11 @@ export interface RetroBoard {
     durationMinutes: number
     isActive: boolean
   }
+}
+
+export interface User {
+  id: string
+  username: string
+  passwordHash: string
+  createdAt: number
 }
