@@ -25,35 +25,44 @@ export function NameEntry() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="flex items-center justify-center min-h-screen main-bg">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     )
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <Card className="w-96">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome to Team Retrospective</CardTitle>
-          <p className="text-muted-foreground">Enter your name to get started</p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              type="text"
-              placeholder="Your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full"
-              autoFocus
-            />
-            <Button type="submit" className="w-full" disabled={!name.trim()}>
-              Continue
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen main-bg">
+      {/* Header */}
+      <header className="menu-bg">
+        <div className="container mx-auto px-6 py-4">
+          <h1 className="text-2xl font-bold text-menu">Team Retrospective</h1>
+        </div>
+      </header>
+
+      <div className="flex items-center justify-center flex-1 py-20">
+        <Card className="w-96 border-2 border-primary/20">
+          <CardHeader className="text-center bg-primary/5">
+            <CardTitle className="text-2xl text-primary">Welcome!</CardTitle>
+            <p className="text-muted-foreground">Enter your name to get started</p>
+          </CardHeader>
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                type="text"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full border-primary/30 focus:border-primary"
+                autoFocus
+              />
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={!name.trim()}>
+                Continue
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

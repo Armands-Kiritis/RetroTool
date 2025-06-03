@@ -22,4 +22,7 @@ export interface RetroBoard {
   createdAt: number
   items: RetroItem[]
   participants: string[]
+  isArchived: boolean
+  archivedAt?: number
+  archivedBy?: string
 }

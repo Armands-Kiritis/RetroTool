@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
     createdAt: Date.now(),
     items: [],
     participants: [createdBy],
+    isArchived: false,
   }
 
   await redis.set(`board:${boardId}`, newBoard)
