@@ -89,5 +89,7 @@ export const lv = {
     select: "Valoda",
     en: "Angļu",
     lv: "Latviešu",
+    lt: "Lietuviešu",
+    no: "Norvēģu",
   },
 }

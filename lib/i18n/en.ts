@@ -89,5 +89,7 @@ export const en = {
     select: "Language",
     en: "English",
     lv: "Latvian",
+    lt: "Lithuanian",
+    no: "Norwegian",
   },
 }

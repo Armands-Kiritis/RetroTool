@@ -1,11 +1,15 @@
 import { en } from "./en"
 import { lv } from "./lv"
+import { lt } from "./lt"
+import { no } from "./no"
 
-export type Language = "en" | "lv"
+export type Language = "en" | "lv" | "lt" | "no"
 
 export const translations = {
   en,
   lv,
+  lt,
+  no,
 }
 
 export type TranslationKey = keyof typeof en

@@ -19,7 +19,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     // Load language from localStorage on mount
     try {
       const savedLanguage = localStorage.getItem("retro-language") as Language
-      if (savedLanguage && (savedLanguage === "en" || savedLanguage === "lv")) {
+      if (
+        savedLanguage &&
+        (savedLanguage === "en" || savedLanguage === "lv" || savedLanguage === "lt" || savedLanguage === "no")
+      ) {
         setLanguageState(savedLanguage)
       }
     } catch (error) {

@@ -29,6 +29,18 @@ export function LanguageSwitcher() {
         >
           {t("language.lv")}
         </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => setLanguage("lt")}
+          className={`cursor-pointer ${language === "lt" ? "bg-primary/10" : ""}`}
+        >
+          {t("language.lt")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => setLanguage("no")}
+          className={`cursor-pointer ${language === "no" ? "bg-primary/10" : ""}`}
+        >
+          {t("language.no")}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
