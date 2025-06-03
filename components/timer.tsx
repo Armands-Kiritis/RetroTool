@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Clock, Play, Square } from "lucide-react"
@@ -22,6 +22,7 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [showEndDialog, setShowEndDialog] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const alertShownRef = useRef<string | null>(null) // Track which timer session has shown the alert
 
   // Calculate time left when timer prop changes
   useEffect(() => {
@@ -29,6 +30,12 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
       const endTime = timer.startTime + timer.durationMinutes * 60 * 1000
       const remaining = Math.max(0, endTime - Date.now())
       setTimeLeft(remaining)
+
+      // Reset alert tracking for new timer sessions
+      const timerKey = `${timer.startTime}-${timer.durationMinutes}`
+      if (alertShownRef.current !== timerKey) {
+        alertShownRef.current = null
+      }
     } else {
       setTimeLeft(null)
     }
@@ -44,9 +51,13 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
         const remaining = Math.max(0, endTime - Date.now())
         setTimeLeft(remaining)
 
-        // Show end dialog when timer reaches 0
+        // Show end dialog when timer reaches 0, but only once per timer session
         if (remaining === 0) {
-          setShowEndDialog(true)
+          const timerKey = `${timer.startTime}-${timer.durationMinutes}`
+          if (alertShownRef.current !== timerKey) {
+            setShowEndDialog(true)
+            alertShownRef.current = timerKey
+          }
         }
       }
     }, 1000)
@@ -65,6 +76,8 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
         }),
       })
       setDialogOpen(false)
+      // Reset alert tracking when starting a new timer
+      alertShownRef.current = null
     } catch (error) {
       console.error("Failed to start timer:", error)
     }
@@ -79,6 +92,8 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
           action: "stop",
         }),
       })
+      // Reset alert tracking when stopping timer
+      alertShownRef.current = null
     } catch (error) {
       console.error("Failed to stop timer:", error)
     }
@@ -112,13 +127,18 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
 
         {/* Timer ended dialog */}
         <AlertDialog open={showEndDialog} onOpenChange={setShowEndDialog}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-white">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl text-center">Time's Up!</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl text-center text-primary">Time's Up!</AlertDialogTitle>
             </AlertDialogHeader>
             <div className="text-center py-4">
-              <p className="mb-4">The time for adding items to the board has ended.</p>
+              <p className="mb-4 text-primary-custom">The time for adding items to the board has ended.</p>
               <p className="text-muted-foreground">You can now proceed with discussing the items.</p>
+            </div>
+            <div className="flex justify-center pt-4">
+              <Button onClick={() => setShowEndDialog(false)} className="bg-primary hover:bg-primary/90">
+                OK
+              </Button>
             </div>
           </AlertDialogContent>
         </AlertDialog>
@@ -136,9 +156,9 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
             Set Timer
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] bg-white">
           <DialogHeader>
-            <DialogTitle>Set Timer</DialogTitle>
+            <DialogTitle className="text-primary">Set Timer</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-muted-foreground mb-4">
@@ -146,7 +166,7 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
             </p>
             <div className="flex items-center gap-4">
               <div className="flex-1">
-                <label htmlFor="minutes" className="text-sm font-medium">
+                <label htmlFor="minutes" className="text-sm font-medium text-primary-custom">
                   Minutes
                 </label>
                 <Input
@@ -156,7 +176,7 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
                   max="60"
                   value={minutes}
                   onChange={(e) => setMinutes(Number.parseInt(e.target.value) || 10)}
-                  className="mt-1"
+                  className="mt-1 border-primary/30 focus:border-primary"
                 />
               </div>
               <Button onClick={startTimer} className="bg-primary hover:bg-primary/90 mt-6">
