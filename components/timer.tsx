@@ -23,6 +23,7 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
   const [showEndDialog, setShowEndDialog] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const alertShownRef = useRef<string | null>(null) // Track which timer session has shown the alert
+  const timerEndedRef = useRef(false) // Track if timer has ended
 
   // Calculate time left when timer prop changes
   useEffect(() => {
@@ -35,6 +36,7 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
       const timerKey = `${timer.startTime}-${timer.durationMinutes}`
       if (alertShownRef.current !== timerKey) {
         alertShownRef.current = null
+        timerEndedRef.current = false
       }
     } else {
       setTimeLeft(null)
@@ -52,11 +54,14 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
         setTimeLeft(remaining)
 
         // Show end dialog when timer reaches 0, but only once per timer session
-        if (remaining === 0) {
+        if (remaining === 0 && !timerEndedRef.current) {
+          timerEndedRef.current = true
           const timerKey = `${timer.startTime}-${timer.durationMinutes}`
           if (alertShownRef.current !== timerKey) {
             setShowEndDialog(true)
             alertShownRef.current = timerKey
+            // Automatically stop the timer when it ends
+            stopTimer()
           }
         }
       }
@@ -78,6 +83,7 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
       setDialogOpen(false)
       // Reset alert tracking when starting a new timer
       alertShownRef.current = null
+      timerEndedRef.current = false
     } catch (error) {
       console.error("Failed to start timer:", error)
     }
@@ -99,6 +105,10 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
     }
   }
 
+  const handleAlertClose = () => {
+    setShowEndDialog(false)
+  }
+
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000)
     const minutes = Math.floor(totalSeconds / 60)
@@ -106,8 +116,8 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`
   }
 
-  // If timer is active, show countdown
-  if (timer && timer.isActive && timeLeft !== null) {
+  // If timer is active and not ended, show countdown
+  if (timer && timer.isActive && timeLeft !== null && !timerEndedRef.current) {
     return (
       <>
         <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-md">
@@ -126,7 +136,7 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
         </div>
 
         {/* Timer ended dialog */}
-        <AlertDialog open={showEndDialog} onOpenChange={setShowEndDialog}>
+        <AlertDialog open={showEndDialog} onOpenChange={handleAlertClose}>
           <AlertDialogContent className="bg-white">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-xl text-center text-primary">Time's Up!</AlertDialogTitle>
@@ -136,7 +146,7 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
               <p className="text-muted-foreground">You can now proceed with discussing the items.</p>
             </div>
             <div className="flex justify-center pt-4">
-              <Button onClick={() => setShowEndDialog(false)} className="bg-primary hover:bg-primary/90">
+              <Button onClick={handleAlertClose} className="bg-primary hover:bg-primary/90">
                 OK
               </Button>
             </div>
