@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
 import { UserProvider } from "@/lib/user-context"
+import { LanguageProvider } from "@/lib/language-context"
 
 export const metadata: Metadata = {
   title: "Team Retrospective Tool",
@@ -17,7 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans">
-        <UserProvider>{children}</UserProvider>
+        <LanguageProvider>
+          <UserProvider>{children}</UserProvider>
+        </LanguageProvider>
       </body>
     </html>
   )

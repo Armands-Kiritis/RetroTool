@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useUser } from "@/lib/user-context"
+import { useLanguage } from "@/lib/language-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -20,6 +21,7 @@ import {
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Timer } from "@/components/timer"
+import { LanguageSwitcher } from "./language-switcher"
 import type { RetroItem, RetroBoard as RetroBoardType } from "@/lib/redis"
 
 interface RetroBoardProps {
@@ -29,6 +31,7 @@ interface RetroBoardProps {
 
 export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const { user } = useUser()
+  const { t } = useLanguage()
   const [board, setBoard] = useState<RetroBoardType | null>(null)
   const [items, setItems] = useState<RetroItem[]>([])
   const [newItems, setNewItems] = useState({
@@ -106,9 +109,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const archiveBoard = async () => {
     if (!user) return
 
-    const confirmed = window.confirm(
-      "Are you sure you want to archive this board? It will become read-only and move to the archived section.",
-    )
+    const confirmed = window.confirm(t("common.archiveConfirm"))
 
     if (!confirmed) return
 
@@ -154,7 +155,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const copyBoardLink = () => {
     const url = `${window.location.origin}?board=${boardId}`
     navigator.clipboard.writeText(url)
-    alert("Board link copied to clipboard!")
+    alert(t("common.copySuccess"))
   }
 
   const getItemsByCategory = (category: "glad" | "mad" | "sad") => {
@@ -176,14 +177,16 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   }
 
   const getCategoryTitle = (category: "glad" | "mad" | "sad") => {
-    switch (category) {
-      case "glad":
-        return "😊 Glad"
-      case "mad":
-        return "😠 Mad"
-      case "sad":
-        return "😢 Sad"
+    return t(`retroBoard.${category}`)
+  }
+
+  const getEmotionPlaceholder = (category: "glad" | "mad" | "sad") => {
+    const emotions = {
+      glad: "glad",
+      mad: "mad",
+      sad: "sad",
     }
+    return t("retroBoard.whatMadeYou", { emotion: emotions[category] })
   }
 
   if (!board) {
@@ -204,7 +207,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" onClick={onLeaveBoard} className="text-menu hover:bg-white/10">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
+                {t("common.back")}
               </Button>
               <div>
                 <div className="flex items-center gap-2">
@@ -212,25 +215,32 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                   {board.isArchived && (
                     <Badge variant="secondary" className="bg-white/20 text-menu">
                       <Archive className="w-3 h-3 mr-1" />
-                      Archived
+                      {t("common.archived")}
                     </Badge>
                   )}
                 </div>
                 <div className="flex items-center gap-4 text-sm text-menu/80">
-                  <span>Board ID: {boardId}</span>
+                  <span>
+                    {t("common.boardId")}: {boardId}
+                  </span>
                   <div className="flex items-center gap-1">
                     <Users className="w-4 h-4" />
-                    <span>{board.participants.length} participants</span>
+                    <span>
+                      {board.participants.length} {t("common.participants")}
+                    </span>
                   </div>
                   {isCreator && (
                     <Badge variant="secondary" className="bg-white/10 text-menu text-xs">
-                      Creator
+                      {t("common.creator")}
                     </Badge>
                   )}
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+
               {/* Timer Component */}
               <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} />
 
@@ -242,7 +252,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                   className="bg-white/10 border-white/20 text-menu hover:bg-white/20"
                 >
                   <ArchiveRestore className="w-4 h-4 mr-2" />
-                  Unarchive
+                  {t("common.unarchive")}
                 </Button>
               )}
               <Button
@@ -252,7 +262,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                 className="bg-white/10 border-white/20 text-menu hover:bg-white/20"
               >
                 <Copy className="w-4 h-4 mr-2" />
-                Share Link
+                {t("common.shareLink")}
               </Button>
 
               {/* Board Actions Menu - Available to all users for non-archived boards */}
@@ -271,7 +281,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                     <DropdownMenuContent align="end" className="z-50 bg-white">
                       <DropdownMenuItem onClick={archiveBoard} className="cursor-pointer">
                         <Archive className="w-4 h-4 mr-2" />
-                        Archive Board
+                        {t("common.archiveBoard")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -289,11 +299,12 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
               <div className="flex items-center gap-2 text-amber-800">
                 <AlertCircle className="w-5 h-5" />
                 <div>
-                  <p className="font-medium">This board is archived</p>
+                  <p className="font-medium">{t("retroBoard.archivedMessage")}</p>
                   <p className="text-sm">
-                    Archived on {new Date(board.archivedAt!).toLocaleDateString()} by {board.archivedBy}. You can view
-                    the content but cannot make changes. Any team member can unarchive this board using the button
-                    above.
+                    {t("retroBoard.archivedDescription", {
+                      date: new Date(board.archivedAt!).toLocaleDateString(),
+                      name: board.archivedBy || "",
+                    })}
                   </p>
                 </div>
               </div>
@@ -314,7 +325,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                 {!board.isArchived && (
                   <div className="space-y-2">
                     <Textarea
-                      placeholder={`What made you ${category}?`}
+                      placeholder={getEmotionPlaceholder(category)}
                       value={newItems[category]}
                       onChange={(e) => setNewItems({ ...newItems, [category]: e.target.value })}
                       className="min-h-[80px] border-primary/30 focus:border-primary"
@@ -326,7 +337,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                       size="sm"
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Add Item
+                      {t("retroBoard.addItem")}
                     </Button>
                   </div>
                 )}
@@ -342,14 +353,16 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                               <div>
                                 <p className="text-sm text-primary-custom">{item.content}</p>
                                 <div className="flex items-center gap-2 mt-2">
-                                  <span className="text-xs text-muted-foreground">by {item.authorName}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {t("boardSelection.by")} {item.authorName}
+                                  </span>
                                 </div>
                               </div>
                             ) : (
                               <div className="flex items-center gap-2">
                                 <div className="w-4 h-4 bg-primary/30 rounded-full animate-pulse" />
                                 <span className="text-sm text-muted-foreground">
-                                  Hidden item from {item.authorName}
+                                  {t("retroBoard.hiddenItem", { name: item.authorName })}
                                 </span>
                               </div>
                             )}
@@ -374,7 +387,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
 
                         {item.isRevealed && (
                           <Badge variant="secondary" className="mt-2 text-xs bg-primary/10 text-primary">
-                            Revealed
+                            {t("retroBoard.revealed")}
                           </Badge>
                         )}
                       </CardContent>

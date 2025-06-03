@@ -7,8 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useUser } from "@/lib/user-context"
+import { useLanguage } from "@/lib/language-context"
 import { Plus, Users, Calendar, MessageSquare, Archive, MoreVertical } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { LanguageSwitcher } from "./language-switcher"
 
 interface BoardSelectionProps {
   onBoardSelected: (boardId: string) => void
@@ -34,6 +36,7 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
   const [loadingBoards, setLoadingBoards] = useState(true)
   const [showArchived, setShowArchived] = useState(false)
   const { user } = useUser()
+  const { t } = useLanguage()
 
   const fetchExistingBoards = async () => {
     try {
@@ -96,11 +99,11 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
       if (response.ok) {
         onBoardSelected(targetBoardId)
       } else {
-        alert("Board not found. Please check the board ID.")
+        alert(t("common.boardNotFound"))
       }
     } catch (error) {
       console.error("Failed to join board:", error)
-      alert("Failed to join board. Please try again.")
+      alert(t("common.joinFailed"))
     } finally {
       setLoading(false)
     }
@@ -110,9 +113,7 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
     e.stopPropagation()
     if (!user) return
 
-    const confirmed = window.confirm(
-      "Are you sure you want to archive this board? It will become read-only and move to the archived section.",
-    )
+    const confirmed = window.confirm(t("common.archiveConfirm"))
 
     if (!confirmed) return
 
@@ -151,15 +152,18 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
     <div className="min-h-screen main-bg">
       {/* Header */}
       <header className="menu-bg">
-        <div className="container mx-auto px-6 py-4">
-          <h1 className="text-2xl font-bold text-menu">Team Retrospective</h1>
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-menu">{t("retroBoard.teamRetrospective")}</h1>
+          <LanguageSwitcher />
         </div>
       </header>
 
       <div className="container mx-auto p-6">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-primary-custom mb-2">Hello, {user?.name}!</h2>
-          <p className="text-muted-foreground">Create a new retrospective board or join an existing one</p>
+          <h2 className="text-3xl font-bold text-primary-custom mb-2">
+            {t("boardSelection.hello", { name: user?.name || "" })}
+          </h2>
+          <p className="text-muted-foreground">{t("boardSelection.createOrJoin")}</p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -168,13 +172,13 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
             <CardHeader className="bg-primary/5">
               <CardTitle className="flex items-center gap-2 text-primary">
                 <Plus className="w-5 h-5" />
-                Create New Board
+                {t("boardSelection.createNew")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <Input
                 type="text"
-                placeholder="Board name (e.g., Sprint 23 Retro)"
+                placeholder={t("boardSelection.boardName")}
                 value={boardName}
                 onChange={(e) => setBoardName(e.target.value)}
                 className="border-primary/30 focus:border-primary"
@@ -184,7 +188,7 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                 className="w-full bg-primary hover:bg-primary/90"
                 disabled={loading || !boardName.trim()}
               >
-                Create Board
+                {t("boardSelection.createBoard")}
               </Button>
             </CardContent>
           </Card>
@@ -194,13 +198,13 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
             <CardHeader className="bg-primary/5">
               <CardTitle className="flex items-center gap-2 text-primary">
                 <Users className="w-5 h-5" />
-                Join by Board ID
+                {t("boardSelection.joinById")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <Input
                 type="text"
-                placeholder="Board ID (e.g., ABC123XY)"
+                placeholder={t("boardSelection.boardIdPlaceholder")}
                 value={joinBoardId}
                 onChange={(e) => setJoinBoardId(e.target.value.toUpperCase())}
                 className="border-primary/30 focus:border-primary"
@@ -210,7 +214,7 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                 className="w-full bg-primary hover:bg-primary/90"
                 disabled={loading || !joinBoardId.trim()}
               >
-                Join Board
+                {t("boardSelection.joinBoard")}
               </Button>
             </CardContent>
           </Card>
@@ -221,7 +225,7 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-primary">
                   {showArchived ? <Archive className="w-5 h-5" /> : <Calendar className="w-5 h-5" />}
-                  {showArchived ? "Archived Boards" : "Recent Boards"}
+                  {showArchived ? t("boardSelection.archivedBoards") : t("boardSelection.recentBoards")}
                 </CardTitle>
                 <Button
                   variant="ghost"
@@ -229,7 +233,7 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                   onClick={() => setShowArchived(!showArchived)}
                   className="text-primary hover:bg-primary/10"
                 >
-                  {showArchived ? "Show Active" : "Show Archived"}
+                  {showArchived ? t("boardSelection.showActive") : t("boardSelection.showArchived")}
                 </Button>
               </div>
             </CardHeader>
@@ -240,7 +244,7 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                 </div>
               ) : displayBoards.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
-                  {showArchived ? "No archived boards" : "No boards created yet"}
+                  {showArchived ? t("boardSelection.noArchivedBoards") : t("boardSelection.noBoardsCreated")}
                 </p>
               ) : (
                 <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -279,7 +283,7 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                                       className="cursor-pointer"
                                     >
                                       <Archive className="w-4 h-4 mr-2" />
-                                      Archive Board
+                                      {t("common.archiveBoard")}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
@@ -290,10 +294,12 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                             className="flex items-center justify-between text-xs text-muted-foreground"
                             onClick={() => joinBoard(board.id)}
                           >
-                            <span>by {board.createdBy}</span>
+                            <span>
+                              {t("boardSelection.by")} {board.createdBy}
+                            </span>
                             <span>
                               {board.isArchived && board.archivedAt
-                                ? `Archived ${formatDate(board.archivedAt)}`
+                                ? `${t("common.archived")} ${formatDate(board.archivedAt)}`
                                 : formatDate(board.createdAt)}
                             </span>
                           </div>
@@ -312,7 +318,7 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                             {board.isArchived && (
                               <div className="flex items-center gap-1">
                                 <Archive className="w-3 h-3" />
-                                <span>Archived</span>
+                                <span>{t("common.archived")}</span>
                               </div>
                             )}
                           </div>

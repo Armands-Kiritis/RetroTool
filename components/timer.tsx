@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Clock, Play, Square } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { useLanguage } from "@/lib/language-context"
 
 interface TimerProps {
   boardId: string
@@ -18,6 +19,7 @@ interface TimerProps {
 }
 
 export function Timer({ boardId, timer, isArchived }: TimerProps) {
+  const { t } = useLanguage()
   const [minutes, setMinutes] = useState(10)
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [showEndDialog, setShowEndDialog] = useState(false)
@@ -139,15 +141,15 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
         <AlertDialog open={showEndDialog} onOpenChange={handleAlertClose}>
           <AlertDialogContent className="bg-white">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl text-center text-primary">Time's Up!</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl text-center text-primary">{t("timer.timeUp")}</AlertDialogTitle>
             </AlertDialogHeader>
             <div className="text-center py-4">
-              <p className="mb-4 text-primary-custom">The time for adding items to the board has ended.</p>
-              <p className="text-muted-foreground">You can now proceed with discussing the items.</p>
+              <p className="mb-4 text-primary-custom">{t("timer.timeUpMessage")}</p>
+              <p className="text-muted-foreground">{t("timer.timeUpDescription")}</p>
             </div>
             <div className="flex justify-center pt-4">
               <Button onClick={handleAlertClose} className="bg-primary hover:bg-primary/90">
-                OK
+                {t("common.ok")}
               </Button>
             </div>
           </AlertDialogContent>
@@ -163,21 +165,19 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
         <DialogTrigger asChild>
           <Button variant="outline" size="sm" className="bg-primary/5 border-primary/20 hover:bg-primary/10">
             <Clock className="w-4 h-4 mr-2" />
-            Set Timer
+            {t("timer.setTimer")}
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] bg-white">
           <DialogHeader>
-            <DialogTitle className="text-primary">Set Timer</DialogTitle>
+            <DialogTitle className="text-primary">{t("timer.timerTitle")}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              Set a timer for team members to add items to the board. When the timer ends, everyone will be notified.
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">{t("timer.timerDescription")}</p>
             <div className="flex items-center gap-4">
               <div className="flex-1">
                 <label htmlFor="minutes" className="text-sm font-medium text-primary-custom">
-                  Minutes
+                  {t("timer.minutes")}
                 </label>
                 <Input
                   id="minutes"
@@ -191,7 +191,7 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
               </div>
               <Button onClick={startTimer} className="bg-primary hover:bg-primary/90 mt-6">
                 <Play className="w-4 h-4 mr-2" />
-                Start Timer
+                {t("timer.startTimer")}
               </Button>
             </div>
           </div>
