@@ -100,7 +100,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     }
   }
 
-  const revealItem = async (itemId: string) => {
+  const toggleItemVisibility = async (itemId: string, currentlyRevealed: boolean) => {
     if (!user || board?.isArchived) return
 
     try {
@@ -109,6 +109,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           authorName: user.username || user.name,
+          action: currentlyRevealed ? "hide" : "reveal",
         }),
       })
 
@@ -116,7 +117,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         fetchBoard()
       }
     } catch (error) {
-      console.error("Failed to reveal item:", error)
+      console.error(`Failed to ${currentlyRevealed ? "hide" : "reveal"} item:`, error)
     }
   }
 
@@ -572,14 +573,14 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => revealItem(item.id)}
-                                    disabled={item.isRevealed}
+                                    onClick={() => toggleItemVisibility(item.id, item.isRevealed)}
                                     className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
+                                    title={item.isRevealed ? t("retroBoard.hideItem") : t("retroBoard.revealItem")}
                                   >
                                     {item.isRevealed ? (
-                                      <Eye className="w-4 h-4 text-primary" />
-                                    ) : (
                                       <EyeOff className="w-4 h-4 text-primary" />
+                                    ) : (
+                                      <Eye className="w-4 h-4 text-primary" />
                                     )}
                                   </Button>
                                   <DropdownMenu>

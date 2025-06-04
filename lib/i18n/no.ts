@@ -86,6 +86,8 @@ export const no = {
     cancel: "Avbryt",
     editFailed: "Kunne ikke redigere elementet. Prøv igjen.",
     deleteFailed: "Kunne ikke slette elementet. Prøv igjen.",
+    revealItem: "Vis element",
+    hideItem: "Skjul element",
   },
   timer: {
     setTimer: "Sett timer",

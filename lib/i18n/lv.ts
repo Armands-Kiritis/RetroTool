@@ -81,6 +81,8 @@ export const lv = {
     deleteItemConfirm: "Vai tiešām vēlaties dzēst šo ierakstu? Šo darbību nevar atsaukt.",
     hiddenItem: "Slēpts ieraksts no {name}",
     revealed: "Atklāts",
+    revealItem: "Atklāt ierakstu",
+    hideItem: "Slēpt ierakstu",
     teamRetrospective: "Komandas retrospektīva",
     save: "Saglabāt",
     cancel: "Atcelt",

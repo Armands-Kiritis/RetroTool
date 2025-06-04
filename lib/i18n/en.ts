@@ -81,6 +81,8 @@ export const en = {
     deleteItemConfirm: "Are you sure you want to delete this item? This action cannot be undone.",
     hiddenItem: "Hidden item from {name}",
     revealed: "Revealed",
+    revealItem: "Reveal Item",
+    hideItem: "Hide Item",
     teamRetrospective: "Team Retrospective",
     save: "Save",
     cancel: "Cancel",

@@ -80,6 +80,8 @@ export const lt = {
     deleteItemConfirm: "Ar tikrai norite ištrinti šį įrašą? Šio veiksmo negalima atšaukti.",
     hiddenItem: "Paslėptas įrašas nuo {name}",
     revealed: "Atskleista",
+    revealItem: "Atskleisti įrašą",
+    hideItem: "Slėpti įrašą",
     teamRetrospective: "Komandos retrospektyva",
     save: "Išsaugoti",
     cancel: "Atšaukti",
