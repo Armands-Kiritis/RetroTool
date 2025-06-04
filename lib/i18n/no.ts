@@ -9,10 +9,15 @@ export const no = {
     shareLink: "Del lenke",
     copySuccess: "Tavlelenke kopiert til utklippstavle!",
     archiveBoard: "Arkiver tavle",
+    deleteBoard: "Slett tavle",
     unarchive: "Gjenopprett fra arkiv",
     archived: "Arkivert",
     archiveConfirm:
       "Er du sikker på at du vil arkivere denne tavlen? Den blir skrivebeskyttet og flyttes til arkivseksjonen.",
+    deleteConfirm:
+      "Er du sikker på at du vil slette '{boardName}' permanent? Denne handlingen kan ikke angres og alle data vil gå tapt.",
+    deleteSuccess: "Tavle slettet.",
+    deleteFailed: "Kunne ikke slette tavlen. Prøv igjen.",
     boardNotFound: "Tavle ikke funnet. Sjekk tavle-ID.",
     joinFailed: "Kunne ikke bli med på tavlen. Prøv igjen.",
     logout: "Logg ut",

@@ -20,8 +20,15 @@ import {
   MoreVertical,
   LogOut,
   User,
+  Trash2,
 } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 import { Timer } from "@/components/timer"
 import { LanguageSwitcher } from "./language-switcher"
 import type { RetroItem, RetroBoard as RetroBoardType } from "@/lib/redis"
@@ -151,6 +158,35 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
       }
     } catch (error) {
       console.error("Failed to unarchive board:", error)
+    }
+  }
+
+  const deleteBoard = async () => {
+    if (!user || !board) return
+
+    const confirmed = window.confirm(t("common.deleteConfirm", { boardName: board.name }))
+
+    if (!confirmed) return
+
+    try {
+      const response = await fetch(`/api/boards/${boardId}/delete`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userName: user.username || user.name,
+        }),
+      })
+
+      if (response.ok) {
+        alert(t("common.deleteSuccess"))
+        onLeaveBoard() // Navigate back to board selection
+      } else {
+        const error = await response.json()
+        alert(error.error || t("common.deleteFailed"))
+      }
+    } catch (error) {
+      console.error("Failed to delete board:", error)
+      alert(t("common.deleteFailed"))
     }
   }
 
@@ -291,7 +327,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                 {t("common.shareLink")}
               </Button>
 
-              {/* Board Actions Menu - Available to all users for non-archived boards */}
+              {/* Board Actions Menu - Available to all users for non-archived boards, but delete only for creator */}
               {!board.isArchived && (
                 <div className="relative z-10">
                   <DropdownMenu>
@@ -308,6 +344,44 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                       <DropdownMenuItem onClick={archiveBoard} className="cursor-pointer">
                         <Archive className="w-4 h-4 mr-2" />
                         {t("common.archiveBoard")}
+                      </DropdownMenuItem>
+                      {isCreator && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={deleteBoard}
+                            className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            {t("common.deleteBoard")}
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
+
+              {/* Delete option for archived boards (creator only) */}
+              {board.isArchived && isCreator && (
+                <div className="relative z-10">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-white/10 border-white/20 text-menu hover:bg-white/20"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="z-50 bg-white">
+                      <DropdownMenuItem
+                        onClick={deleteBoard}
+                        className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {t("common.deleteBoard")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

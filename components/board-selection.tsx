@@ -8,8 +8,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useUser } from "@/lib/user-context"
 import { useLanguage } from "@/lib/language-context"
-import { Plus, Users, Calendar, MessageSquare, Archive, MoreVertical, LogOut, User } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Plus, Users, Calendar, MessageSquare, Archive, MoreVertical, LogOut, User, Trash2 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 import { LanguageSwitcher } from "./language-switcher"
 
 interface BoardSelectionProps {
@@ -204,6 +210,36 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
     }
   }
 
+  const deleteBoard = async (boardId: string, boardName: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!user) return
+
+    const confirmed = window.confirm(t("common.deleteConfirm", { boardName }))
+
+    if (!confirmed) return
+
+    try {
+      const response = await fetch(`/api/boards/${boardId}/delete`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userName: user.username,
+        }),
+      })
+
+      if (response.ok) {
+        fetchExistingBoards()
+        alert(t("common.deleteSuccess"))
+      } else {
+        const error = await response.json()
+        alert(error.error || t("common.deleteFailed"))
+      }
+    } catch (error) {
+      console.error("Failed to delete board:", error)
+      alert(t("common.deleteFailed"))
+    }
+  }
+
   const handleLogout = () => {
     clearUser()
   }
@@ -380,7 +416,7 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                             >
                               {board.name}
                             </h4>
-                            {!board.isArchived && board.createdByUserId === user?.id && (
+                            {board.createdByUserId === user?.id && (
                               <div className="relative z-10">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -394,12 +430,22 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end" className="z-50 bg-white">
+                                    {!board.isArchived && (
+                                      <DropdownMenuItem
+                                        onClick={(e) => archiveBoard(board.id, e)}
+                                        className="cursor-pointer"
+                                      >
+                                        <Archive className="w-4 h-4 mr-2" />
+                                        {t("common.archiveBoard")}
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuSeparator />
                                     <DropdownMenuItem
-                                      onClick={(e) => archiveBoard(board.id, e)}
-                                      className="cursor-pointer"
+                                      onClick={(e) => deleteBoard(board.id, board.name, e)}
+                                      className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
                                     >
-                                      <Archive className="w-4 h-4 mr-2" />
-                                      {t("common.archiveBoard")}
+                                      <Trash2 className="w-4 h-4 mr-2" />
+                                      {t("common.deleteBoard")}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>

@@ -9,10 +9,15 @@ export const lv = {
     shareLink: "Kopīgot saiti",
     copySuccess: "Tāfeles saite nokopēta starpliktuvē!",
     archiveBoard: "Arhivēt tāfeli",
+    deleteBoard: "Dzēst tāfeli",
     unarchive: "Atarhivēt",
     archived: "Arhivēts",
     archiveConfirm:
       "Vai tiešām vēlaties arhivēt šo tāfeli? Tā kļūs tikai lasāma un tiks pārvietota uz arhivēto sadaļu.",
+    deleteConfirm:
+      "Vai tiešām vēlaties neatgriezeniski dzēst '{boardName}'? Šo darbību nevar atsaukt un visi dati tiks zaudēti.",
+    deleteSuccess: "Tāfele veiksmīgi dzēsta.",
+    deleteFailed: "Neizdevās dzēst tāfeli. Lūdzu, mēģiniet vēlreiz.",
     boardNotFound: "Tāfele nav atrasta. Lūdzu, pārbaudiet tāfeles ID.",
     joinFailed: "Neizdevās pievienoties tāfelei. Lūdzu, mēģiniet vēlreiz.",
     logout: "Iziet",

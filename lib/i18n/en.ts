@@ -9,10 +9,15 @@ export const en = {
     shareLink: "Share Link",
     copySuccess: "Board link copied to clipboard!",
     archiveBoard: "Archive Board",
+    deleteBoard: "Delete Board",
     unarchive: "Unarchive",
     archived: "Archived",
     archiveConfirm:
       "Are you sure you want to archive this board? It will become read-only and move to the archived section.",
+    deleteConfirm:
+      "Are you sure you want to permanently delete '{boardName}'? This action cannot be undone and all data will be lost.",
+    deleteSuccess: "Board deleted successfully.",
+    deleteFailed: "Failed to delete board. Please try again.",
     boardNotFound: "Board not found. Please check the board ID.",
     joinFailed: "Failed to join board. Please try again.",
     logout: "Logout",
