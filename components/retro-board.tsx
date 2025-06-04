@@ -345,25 +345,21 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                         <Archive className="w-4 h-4 mr-2" />
                         {t("common.archiveBoard")}
                       </DropdownMenuItem>
-                      {isCreator && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={deleteBoard}
-                            className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            {t("common.deleteBoard")}
-                          </DropdownMenuItem>
-                        </>
-                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={deleteBoard}
+                        className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {t("common.deleteBoard")}
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
               )}
 
               {/* Delete option for archived boards (creator only) */}
-              {board.isArchived && isCreator && (
+              {board.isArchived && (
                 <div className="relative z-10">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

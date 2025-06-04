@@ -416,41 +416,39 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                             >
                               {board.name}
                             </h4>
-                            {board.createdByUserId === user?.id && (
-                              <div className="relative z-10">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-8 w-8 p-0 hover:bg-primary/10"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <MoreVertical className="w-4 h-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="z-50 bg-white">
-                                    {!board.isArchived && (
-                                      <DropdownMenuItem
-                                        onClick={(e) => archiveBoard(board.id, e)}
-                                        className="cursor-pointer"
-                                      >
-                                        <Archive className="w-4 h-4 mr-2" />
-                                        {t("common.archiveBoard")}
-                                      </DropdownMenuItem>
-                                    )}
-                                    <DropdownMenuSeparator />
+                            <div className="relative z-10">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 hover:bg-primary/10"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <MoreVertical className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="z-50 bg-white">
+                                  {!board.isArchived && (
                                     <DropdownMenuItem
-                                      onClick={(e) => deleteBoard(board.id, board.name, e)}
-                                      className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      onClick={(e) => archiveBoard(board.id, e)}
+                                      className="cursor-pointer"
                                     >
-                                      <Trash2 className="w-4 h-4 mr-2" />
-                                      {t("common.deleteBoard")}
+                                      <Archive className="w-4 h-4 mr-2" />
+                                      {t("common.archiveBoard")}
                                     </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            )}
+                                  )}
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={(e) => deleteBoard(board.id, board.name, e)}
+                                    className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    {t("common.deleteBoard")}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </div>
                           <div
                             className="flex items-center justify-between text-xs text-muted-foreground"

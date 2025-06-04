@@ -10,10 +10,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { board
       return NextResponse.json({ error: "Board not found" }, { status: 404 })
     }
 
-    // Only the creator can delete the board
-    if (board.createdBy !== userName) {
-      return NextResponse.json({ error: "Only the board creator can delete this board" }, { status: 403 })
-    }
+    // Any user can delete the board (removed creator restriction)
 
     // Delete the board from Redis
     await redis.del(`board:${params.boardId}`)
