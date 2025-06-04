@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,11 +34,18 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
   const [joinBoardId, setJoinBoardId] = useState("")
   const [loading, setLoading] = useState(false)
   const [existingBoards, setExistingBoards] = useState<BoardSummary[]>([])
+  const [displayedBoards, setDisplayedBoards] = useState<BoardSummary[]>([])
   const [loadingBoards, setLoadingBoards] = useState(true)
   const [showArchived, setShowArchived] = useState(false)
   const [showMyBoards, setShowMyBoards] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const { user, clearUser } = useUser()
   const { t } = useLanguage()
+  const observerRef = useRef<IntersectionObserver | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement | null>(null)
+
+  const BOARDS_PER_PAGE = 10
 
   const fetchExistingBoards = async () => {
     try {
@@ -54,6 +61,10 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
       if (response.ok) {
         const boards = await response.json()
         setExistingBoards(boards)
+        // Reset displayed boards and show first page
+        const initialBoards = boards.slice(0, BOARDS_PER_PAGE)
+        setDisplayedBoards(initialBoards)
+        setHasMore(boards.length > BOARDS_PER_PAGE)
       }
     } catch (error) {
       console.error("Failed to fetch boards:", error)
@@ -61,6 +72,53 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
       setLoadingBoards(false)
     }
   }
+
+  const loadMoreBoards = useCallback(() => {
+    if (loadingMore || !hasMore) return
+
+    setLoadingMore(true)
+
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+      const currentLength = displayedBoards.length
+      const nextBoards = existingBoards.slice(currentLength, currentLength + BOARDS_PER_PAGE)
+
+      if (nextBoards.length > 0) {
+        setDisplayedBoards((prev) => [...prev, ...nextBoards])
+        setHasMore(currentLength + nextBoards.length < existingBoards.length)
+      } else {
+        setHasMore(false)
+      }
+
+      setLoadingMore(false)
+    }, 300)
+  }, [displayedBoards.length, existingBoards, loadingMore, hasMore])
+
+  // Set up intersection observer for infinite scroll
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect()
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadMoreBoards()
+        }
+      },
+      { threshold: 0.1 },
+    )
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current)
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect()
+      }
+    }
+  }, [hasMore, loadingMore, loadMoreBoards])
 
   useEffect(() => {
     setLoadingBoards(true)
@@ -161,7 +219,7 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
 
   const activeBoards = existingBoards.filter((board) => !board.isArchived)
   const archivedBoards = existingBoards.filter((board) => board.isArchived)
-  const displayBoards = showArchived ? archivedBoards : activeBoards
+  const totalBoards = showArchived ? archivedBoards : activeBoards
 
   const getBoardsTitle = () => {
     if (showMyBoards) {
@@ -271,6 +329,11 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                 <CardTitle className="flex items-center gap-2 text-primary">
                   {showArchived ? <Archive className="w-5 h-5" /> : <Calendar className="w-5 h-5" />}
                   {getBoardsTitle()}
+                  {totalBoards.length > 0 && (
+                    <span className="text-sm font-normal text-muted-foreground">
+                      ({displayedBoards.length} of {totalBoards.length})
+                    </span>
+                  )}
                 </CardTitle>
                 <div className="flex gap-1">
                   <Button
@@ -297,11 +360,11 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                 </div>
-              ) : displayBoards.length === 0 ? (
+              ) : displayedBoards.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">{getEmptyMessage()}</p>
               ) : (
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {displayBoards.slice(0, 10).map((board) => (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {displayedBoards.map((board) => (
                     <Card
                       key={board.id}
                       className={`relative cursor-pointer hover:bg-primary/5 transition-colors border-primary/20 ${
@@ -380,6 +443,22 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                       </CardContent>
                     </Card>
                   ))}
+
+                  {/* Loading indicator for infinite scroll */}
+                  {hasMore && (
+                    <div ref={loadMoreRef} className="flex items-center justify-center py-4">
+                      {loadingMore && (
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* End of list indicator */}
+                  {!hasMore && displayedBoards.length > BOARDS_PER_PAGE && (
+                    <div className="text-center py-4 text-sm text-muted-foreground">
+                      {t("boardSelection.allBoardsLoaded")}
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

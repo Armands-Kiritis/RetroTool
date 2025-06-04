@@ -59,6 +59,7 @@ export const no = {
     noBoardsCreated: "Ingen tavler opprettet ennå",
     noArchivedBoards: "Ingen arkiverte tavler",
     noMyBoards: "Du har ikke opprettet noen tavler ennå",
+    allBoardsLoaded: "Alle tavler lastet",
     by: "av",
   },
   retroBoard: {

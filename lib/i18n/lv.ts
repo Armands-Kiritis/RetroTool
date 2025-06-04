@@ -59,6 +59,7 @@ export const lv = {
     noBoardsCreated: "Vēl nav izveidotas tāfeles",
     noArchivedBoards: "Nav arhivētu tāfeļu",
     noMyBoards: "Jūs vēl neesat izveidojis nevienu tāfeli",
+    allBoardsLoaded: "Visas tāfeles ielādētas",
     by: "izveidoja",
   },
   retroBoard: {

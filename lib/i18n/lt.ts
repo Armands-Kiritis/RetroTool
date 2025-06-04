@@ -58,6 +58,7 @@ export const lt = {
     noBoardsCreated: "Dar nesukurta jokių lentų",
     noArchivedBoards: "Nėra archyvuotų lentų",
     noMyBoards: "Dar nesukūrėte jokių lentų",
+    allBoardsLoaded: "Visos lentos įkeltos",
     by: "sukūrė",
   },
   retroBoard: {

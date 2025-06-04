@@ -59,6 +59,7 @@ export const en = {
     noBoardsCreated: "No boards created yet",
     noArchivedBoards: "No archived boards",
     noMyBoards: "You haven't created any boards yet",
+    allBoardsLoaded: "All boards loaded",
     by: "by",
   },
   retroBoard: {
