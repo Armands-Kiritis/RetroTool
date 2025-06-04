@@ -21,6 +21,9 @@ import {
   LogOut,
   User,
   Trash2,
+  Edit3,
+  Check,
+  X,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -49,6 +52,8 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     sad: "",
   })
   const [loading, setLoading] = useState(false)
+  const [editingItem, setEditingItem] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState("")
 
   const fetchBoard = async () => {
     try {
@@ -112,6 +117,70 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
       }
     } catch (error) {
       console.error("Failed to reveal item:", error)
+    }
+  }
+
+  const startEditItem = (item: RetroItem) => {
+    setEditingItem(item.id)
+    setEditContent(item.content)
+  }
+
+  const cancelEditItem = () => {
+    setEditingItem(null)
+    setEditContent("")
+  }
+
+  const saveEditItem = async (itemId: string) => {
+    if (!editContent.trim() || !user) return
+
+    try {
+      const response = await fetch(`/api/boards/${boardId}/items/${itemId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: editContent.trim(),
+          authorName: user.username || user.name,
+        }),
+      })
+
+      if (response.ok) {
+        setEditingItem(null)
+        setEditContent("")
+        fetchBoard()
+      } else {
+        const error = await response.json()
+        alert(error.error || t("retroBoard.editFailed"))
+      }
+    } catch (error) {
+      console.error("Failed to edit item:", error)
+      alert(t("retroBoard.editFailed"))
+    }
+  }
+
+  const deleteItem = async (itemId: string) => {
+    if (!user) return
+
+    const confirmed = window.confirm(t("retroBoard.deleteItemConfirm"))
+    if (!confirmed) return
+
+    try {
+      const response = await fetch(`/api/boards/${boardId}/items/${itemId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          authorName: user.username || user.name,
+        }),
+      })
+
+      if (response.ok) {
+        fetchBoard()
+      } else {
+        const error = await response.json()
+        alert(error.error || t("retroBoard.deleteFailed"))
+      }
+    } catch (error) {
+      console.error("Failed to delete item:", error)
+      alert(t("retroBoard.deleteFailed"))
     }
   }
 
@@ -447,12 +516,44 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                           <div className="flex-1">
                             {item.isRevealed || item.authorName === (user?.username || user?.name) ? (
                               <div>
-                                <p className="text-sm text-primary-custom">{item.content}</p>
-                                <div className="flex items-center gap-2 mt-2">
-                                  <span className="text-xs text-muted-foreground">
-                                    {t("boardSelection.by")} {item.authorName}
-                                  </span>
-                                </div>
+                                {editingItem === item.id ? (
+                                  <div className="space-y-2">
+                                    <Textarea
+                                      value={editContent}
+                                      onChange={(e) => setEditContent(e.target.value)}
+                                      className="min-h-[60px] border-primary/30 focus:border-primary text-sm"
+                                    />
+                                    <div className="flex gap-2">
+                                      <Button
+                                        size="sm"
+                                        onClick={() => saveEditItem(item.id)}
+                                        disabled={!editContent.trim()}
+                                        className="bg-primary hover:bg-primary/90"
+                                      >
+                                        <Check className="w-3 h-3 mr-1" />
+                                        {t("retroBoard.save")}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={cancelEditItem}
+                                        className="border-primary/30"
+                                      >
+                                        <X className="w-3 h-3 mr-1" />
+                                        {t("retroBoard.cancel")}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <p className="text-sm text-primary-custom">{item.content}</p>
+                                    <div className="flex items-center gap-2 mt-2">
+                                      <span className="text-xs text-muted-foreground">
+                                        {t("boardSelection.by")} {item.authorName}
+                                      </span>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             ) : (
                               <div className="flex items-center gap-2">
@@ -465,23 +566,54 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                           </div>
 
                           {item.authorName === (user?.username || user?.name) && !board.isArchived && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => revealItem(item.id)}
-                              disabled={item.isRevealed}
-                              className="shrink-0 hover:bg-primary/10"
-                            >
-                              {item.isRevealed ? (
-                                <Eye className="w-4 h-4 text-primary" />
-                              ) : (
-                                <EyeOff className="w-4 h-4 text-primary" />
+                            <div className="flex gap-1">
+                              {editingItem !== item.id && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => revealItem(item.id)}
+                                    disabled={item.isRevealed}
+                                    className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
+                                  >
+                                    {item.isRevealed ? (
+                                      <Eye className="w-4 h-4 text-primary" />
+                                    ) : (
+                                      <EyeOff className="w-4 h-4 text-primary" />
+                                    )}
+                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
+                                      >
+                                        <MoreVertical className="w-4 h-4 text-primary" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="z-50 bg-white">
+                                      <DropdownMenuItem onClick={() => startEditItem(item)} className="cursor-pointer">
+                                        <Edit3 className="w-4 h-4 mr-2" />
+                                        {t("retroBoard.editItem")}
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        onClick={() => deleteItem(item.id)}
+                                        className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      >
+                                        <Trash2 className="w-4 h-4 mr-2" />
+                                        {t("retroBoard.deleteItem")}
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </>
                               )}
-                            </Button>
+                            </div>
                           )}
                         </div>
 
-                        {item.isRevealed && (
+                        {item.isRevealed && editingItem !== item.id && (
                           <Badge variant="secondary" className="mt-2 text-xs bg-primary/10 text-primary">
                             {t("retroBoard.revealed")}
                           </Badge>
