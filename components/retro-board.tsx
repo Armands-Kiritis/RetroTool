@@ -1526,6 +1526,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
             </div>
           </div>
         </div>
+      </header>
 
       {/* Board Information Area */}
       <div className="bg-white border-b border-primary/20">
@@ -1775,9 +1776,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                             </div>
                                           </div>
                                         ) : (
-                                          <p className="text-sm text-muted-foreground">
-                                            {item.content}
-                                          </p>
+                                          <p className="text-sm text-muted-foreground">{item.content}</p>
                                         )}
                                       </div>
                                     ) : (
