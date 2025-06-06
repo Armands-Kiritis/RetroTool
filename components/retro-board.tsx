@@ -64,8 +64,8 @@ import type { RetroItem, RetroBoard as RetroBoardType, BoardStatus } from "@/lib
 import Image from "next/image"
 
 // First, add the jsPDF import at the top of the file with other imports
-import { jsPDF } from "jspdf"
-import "jspdf-autotable"
+import jsPDF from "jspdf"
+import autoTable from "jspdf-autotable"
 
 interface RetroBoardProps {
   boardId: string
@@ -612,7 +612,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         ])
 
         // Add action items table
-        doc.autoTable({
+        autoTable(doc, {
           startY: 55,
           head: [["#", "Category", "Item", "Action", "Responsible", "Votes"]],
           body: actionItemsData,
@@ -634,7 +634,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
 
       // Add retrospective items section by category
       const categories = ["glad", "mad", "sad"] as const
-      let yPosition = doc.autoTable.previous.finalY + 20 || 70
+      let yPosition = doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 20 : 70
 
       doc.setFontSize(16)
       doc.text("All Retrospective Items", 14, yPosition)
@@ -659,7 +659,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         ])
 
         // Add category items table
-        doc.autoTable({
+        autoTable(doc, {
           startY: yPosition,
           head: [["Author", "Content", "Votes", "Action Item", "Responsible"]],
           body: categoryData,
@@ -676,7 +676,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
           },
         })
 
-        yPosition = doc.autoTable.previous.finalY + 10
+        yPosition = doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 10 : yPosition + 10
       }
 
       // Save the PDF
