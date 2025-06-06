@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { LanguageSwitcher } from "./language-switcher"
 import Image from "next/image"
+import { Badge } from "@/components/ui/badge"
 
 interface BoardSelectionProps {
   onBoardSelected: (boardId: string) => void
@@ -330,6 +331,38 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
     if (!status) return ""
     // Capitalize first letter and replace hyphens with spaces
     return status.charAt(0).toUpperCase() + status.slice(1).replace(/-/g, " ")
+  }
+
+  const getStatusBadgeProps = (status?: string) => {
+    if (!status) return { variant: "secondary" as const, className: "" }
+
+    switch (status.toLowerCase()) {
+      case "registering":
+        return {
+          variant: "secondary" as const,
+          className: "bg-green-100 text-green-800 hover:bg-green-200",
+        }
+      case "voting":
+        return {
+          variant: "secondary" as const,
+          className: "bg-blue-100 text-blue-800 hover:bg-blue-200",
+        }
+      case "action-planning":
+        return {
+          variant: "secondary" as const,
+          className: "bg-purple-100 text-purple-800 hover:bg-purple-200",
+        }
+      case "closed":
+        return {
+          variant: "secondary" as const,
+          className: "bg-gray-100 text-gray-800 hover:bg-gray-200",
+        }
+      default:
+        return {
+          variant: "secondary" as const,
+          className: "bg-orange-100 text-orange-800 hover:bg-orange-200",
+        }
+    }
   }
 
   const filteredBoards = getFilteredBoards()
@@ -662,12 +695,12 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                               <span>Participants: {board.participantCount}</span>
                               <span>Issues: {board.itemCount}</span>
                               {board.status && (
-                                <span className="flex items-center gap-1">
-                                  <span className="inline-block w-2 h-2 rounded-full bg-primary"></span>
-                                  <span>
-                                    {t(`retroBoard.status.${board.status}`, { fallback: formatStatus(board.status) })}
-                                  </span>
-                                </span>
+                                <Badge
+                                  {...getStatusBadgeProps(board.status)}
+                                  className={`text-xs ${getStatusBadgeProps(board.status).className}`}
+                                >
+                                  {formatStatus(board.status)}
+                                </Badge>
                               )}
                               {board.isArchived && (
                                 <div className="flex items-center gap-1">
