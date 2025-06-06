@@ -36,6 +36,7 @@ import {
   ClipboardList,
   ThumbsUp,
   Target,
+  FileDown,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -60,6 +61,10 @@ import {
 import { Timer } from "@/components/timer"
 import type { RetroItem, RetroBoard as RetroBoardType, BoardStatus } from "@/lib/redis"
 import Image from "next/image"
+
+// First, add the jsPDF import at the top of the file with other imports
+import { jsPDF } from "jspdf"
+import "jspdf-autotable"
 
 interface RetroBoardProps {
   boardId: string
@@ -554,6 +559,115 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     }
   }
 
+  // Now add the exportToPdf function to the RetroBoard component
+  // Add this function before the return statement in the RetroBoard component
+
+  const exportToPdf = () => {
+    if (!board) return
+
+    try {
+      // Create a new PDF document
+      const doc = new jsPDF()
+
+      // Add title
+      doc.setFontSize(20)
+      doc.text(`Retrospective: ${board.name}`, 14, 20)
+
+      // Add metadata
+      doc.setFontSize(10)
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 30)
+      doc.text(`Created by: ${board.createdBy}`, 14, 35)
+      doc.text(`Participants: ${board.participants.join(", ")}`, 14, 40)
+
+      // Add action items section
+      doc.setFontSize(16)
+      doc.text("Action Items", 14, 50)
+
+      const actionItems = items.filter((item) => item.actionItem && item.actionItem.trim() !== "")
+
+      if (actionItems.length > 0) {
+        // Create table data for action items
+        const actionItemsData = actionItems.map((item, index) => [
+          `${index + 1}`,
+          getCategoryIcon(item.category),
+          item.content,
+          item.actionItem || "",
+          item.votes?.length || 0,
+        ])
+
+        // Add action items table
+        doc.autoTable({
+          startY: 55,
+          head: [["#", "Category", "Item", "Action", "Votes"]],
+          body: actionItemsData,
+          headStyles: { fillColor: [31, 78, 102] },
+          styles: { fontSize: 10 },
+          columnStyles: {
+            0: { cellWidth: 10 },
+            1: { cellWidth: 20 },
+            2: { cellWidth: 60 },
+            3: { cellWidth: 60 },
+            4: { cellWidth: 15 },
+          },
+        })
+      } else {
+        doc.setFontSize(12)
+        doc.text("No action items were created during this retrospective.", 14, 60)
+      }
+
+      // Add retrospective items section by category
+      const categories = ["glad", "mad", "sad"] as const
+      let yPosition = doc.autoTable.previous.finalY + 20 || 70
+
+      doc.setFontSize(16)
+      doc.text("All Retrospective Items", 14, yPosition)
+      yPosition += 10
+
+      // Group items by category
+      for (const category of categories) {
+        const categoryItems = items.filter((item) => item.category === category)
+        if (categoryItems.length === 0) continue
+
+        doc.setFontSize(14)
+        doc.text(`${getCategoryTitle(category)}`, 14, yPosition)
+        yPosition += 5
+
+        // Create table data for category items
+        const categoryData = categoryItems.map((item) => [
+          item.authorName,
+          item.content,
+          item.votes?.length || 0,
+          item.actionItem || "-",
+        ])
+
+        // Add category items table
+        doc.autoTable({
+          startY: yPosition,
+          head: [["Author", "Content", "Votes", "Action Item"]],
+          body: categoryData,
+          headStyles: {
+            fillColor: category === "glad" ? [34, 197, 94] : category === "mad" ? [239, 68, 68] : [59, 130, 246],
+          },
+          styles: { fontSize: 10 },
+          columnStyles: {
+            0: { cellWidth: 30 },
+            1: { cellWidth: 80 },
+            2: { cellWidth: 15 },
+            3: { cellWidth: 50 },
+          },
+        })
+
+        yPosition = doc.autoTable.previous.finalY + 10
+      }
+
+      // Save the PDF
+      doc.save(`retrospective-${board.name}-${new Date().toISOString().slice(0, 10)}.pdf`)
+    } catch (error) {
+      console.error("Failed to generate PDF:", error)
+      alert("Failed to generate PDF. Please try again.")
+    }
+  }
+
   // Status transition buttons
   const StatusButtons = () => {
     if (!board || board.isArchived) return null
@@ -675,6 +789,19 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
             >
               <ArrowLeftCircle className="w-4 h-4 mr-2" />
               Back to Action Planning
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportToPdf}
+              disabled={updatingStatus}
+              className="text-white transition-colors"
+              style={buttonStyle}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              Export PDF
             </Button>
             <Button
               variant="outline"
