@@ -10,6 +10,7 @@ import { useUser } from "@/lib/user-context"
 import { useLanguage } from "@/lib/language-context"
 import { nanoid } from "nanoid"
 import { LanguageSwitcher } from "./language-switcher"
+import Image from "next/image"
 
 export function NameEntry() {
   const [name, setName] = useState("")
@@ -39,7 +40,16 @@ export function NameEntry() {
       {/* Header */}
       <header className="menu-bg">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-menu">{t("retroBoard.teamRetrospective")}</h1>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/images/team-retrospective-logo-256x256.png"
+              alt="Team Retrospective Logo"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+            />
+            <h1 className="text-2xl font-bold text-menu">{t("retroBoard.teamRetrospective")}</h1>
+          </div>
           <LanguageSwitcher />
         </div>
       </header>

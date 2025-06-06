@@ -16,9 +16,10 @@ interface TimerProps {
     isActive: boolean
   }
   isArchived: boolean
+  isCreator: boolean // Add this prop
 }
 
-export function Timer({ boardId, timer, isArchived }: TimerProps) {
+export function Timer({ boardId, timer, isArchived, isCreator }: TimerProps) {
   const { t } = useLanguage()
   const [minutes, setMinutes] = useState(10)
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
@@ -159,11 +160,26 @@ export function Timer({ boardId, timer, isArchived }: TimerProps) {
   }
 
   // If no active timer and board is not archived, show start timer button
-  if (!isArchived) {
+  if (!isArchived && isCreator) {
+    // Add isCreator check here
     return (
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm" className="bg-primary/5 border-primary/20 hover:bg-primary/10">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-primary text-white hover:bg-primary/90 transition-colors"
+            style={{
+              backgroundColor: "#1f4e66",
+              color: "white",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#D76500"
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#1f4e66"
+            }}
+          >
             <Clock className="w-4 h-4 mr-2" />
             {t("timer.setTimer")}
           </Button>

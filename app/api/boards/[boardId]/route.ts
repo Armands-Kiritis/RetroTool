@@ -8,6 +8,12 @@ export async function GET(request: NextRequest, { params }: { params: { boardId:
     return NextResponse.json({ error: "Board not found" }, { status: 404 })
   }
 
+  // Ensure board has a status field (for backwards compatibility with existing boards)
+  if (!board.status) {
+    board.status = "registering"
+    await redis.set(`board:${params.boardId}`, board)
+  }
+
   return NextResponse.json(board)
 }
 

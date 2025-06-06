@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
     items: [],
     participants: [createdBy],
     isArchived: false,
+    status: "registering", // Set default status
   }
 
   await redis.set(`board:${boardId}`, newBoard)

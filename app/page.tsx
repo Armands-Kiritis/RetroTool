@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { useUser } from "@/lib/user-context"
 import { AuthWrapper } from "@/components/auth/auth-wrapper"
 import { BoardSelection } from "@/components/board-selection"
-import { RetroBoard } from "@/components/retro-board"
+import RetroBoard from "@/components/retro-board"
 
 function HomeContent() {
   const { user } = useUser()

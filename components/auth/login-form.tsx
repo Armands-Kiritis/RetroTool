@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { useUser } from "@/lib/user-context"
 import { useLanguage } from "@/lib/language-context"
 import { LanguageSwitcher } from "../language-switcher"
+import Image from "next/image"
 
 interface LoginFormProps {
   onSwitchToRegister: () => void
@@ -58,7 +59,16 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
     <div className="min-h-screen main-bg">
       <header className="menu-bg">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-menu">{t("retroBoard.teamRetrospective")}</h1>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/images/team-retrospective-logo-256x256.png"
+              alt="Team Retrospective Logo"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+            />
+            <h1 className="text-2xl font-bold text-menu">{t("retroBoard.teamRetrospective")}</h1>
+          </div>
           <LanguageSwitcher />
         </div>
       </header>
@@ -102,8 +112,22 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
 
               <Button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary/90"
+                className="w-full text-white"
                 disabled={loading || !username.trim() || !password}
+                style={{
+                  backgroundColor: "#1f4e66",
+                  color: "white",
+                }}
+                onMouseEnter={(e) => {
+                  if (!e.currentTarget.disabled) {
+                    e.currentTarget.style.backgroundColor = "#D76500"
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!e.currentTarget.disabled) {
+                    e.currentTarget.style.backgroundColor = "#1f4e66"
+                  }
+                }}
               >
                 {loading ? t("common.loading") : t("auth.login")}
               </Button>

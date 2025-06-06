@@ -11,7 +11,19 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-menu hover:bg-white/20">
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-white/10 border-white/20 text-menu hover:bg-white/20 transition-colors"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#D76500"
+            e.currentTarget.style.borderColor = "#D76500"
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)"
+            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)"
+          }}
+        >
           <Globe className="w-4 h-4 mr-2" />
           {t("language.select")}
         </Button>
