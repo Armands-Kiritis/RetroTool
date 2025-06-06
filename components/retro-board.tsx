@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import {
   Eye,
   EyeOff,
@@ -34,6 +35,7 @@ import {
   LockIcon,
   ClipboardList,
   ThumbsUp,
+  Target,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -81,6 +83,8 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [showVotingConfirm, setShowVotingConfirm] = useState(false)
   const [userVotesRemaining, setUserVotesRemaining] = useState(5)
+  const [editingActionItem, setEditingActionItem] = useState<string | null>(null)
+  const [actionItemContent, setActionItemContent] = useState("")
 
   const fetchBoard = async () => {
     try {
@@ -187,6 +191,43 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
       }
     } catch (error) {
       console.error("Failed to vote:", error)
+    }
+  }
+
+  const startEditActionItem = (item: RetroItem) => {
+    setEditingActionItem(item.id)
+    setActionItemContent(item.actionItem || "")
+  }
+
+  const cancelEditActionItem = () => {
+    setEditingActionItem(null)
+    setActionItemContent("")
+  }
+
+  const saveActionItem = async (itemId: string) => {
+    if (!user) return
+
+    try {
+      const response = await fetch(`/api/boards/${boardId}/items/${itemId}/action`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actionItem: actionItemContent.trim(),
+          userName: user.username || user.name,
+        }),
+      })
+
+      if (response.ok) {
+        setEditingActionItem(null)
+        setActionItemContent("")
+        fetchBoard()
+      } else {
+        const error = await response.json()
+        alert(error.error || "Failed to update action item")
+      }
+    } catch (error) {
+      console.error("Failed to update action item:", error)
+      alert("Failed to update action item")
     }
   }
 
@@ -410,6 +451,17 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     }))
   }
 
+  // Get items for action planning - only items with votes, sorted by vote count
+  const getActionPlanningItems = () => {
+    return items
+      .filter((item) => item.votes && item.votes.length > 0) // Only items with votes
+      .sort((a, b) => {
+        const aVotes = a.votes?.length || 0
+        const bVotes = b.votes?.length || 0
+        return bVotes - aVotes // Sort by vote count descending
+      })
+  }
+
   const getCategoryColor = (category: "glad" | "mad" | "sad") => {
     const baseColors = {
       glad: "bg-green-50 border-green-300",
@@ -485,6 +537,19 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const hasUserVotedForItem = (item: RetroItem) => {
     if (!item.votes || !user) return false
     return item.votes.includes(user.username || user.name)
+  }
+
+  const getCategoryIcon = (category: "glad" | "mad" | "sad") => {
+    switch (category) {
+      case "glad":
+        return "😊"
+      case "mad":
+        return "😠"
+      case "sad":
+        return "😢"
+      default:
+        return ""
+    }
   }
 
   // Status transition buttons
@@ -637,6 +702,313 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   // Handle boards created before status field was added
   const boardStatus = board.status || "registering"
   const isCreator = board.createdBy === (user?.username || user?.name)
+
+  // Render Action Planning view
+  if (boardStatus === "action-planning" && !board.isArchived) {
+    const actionPlanningItems = getActionPlanningItems()
+
+    return (
+      <div className="min-h-screen main-bg">
+        {/* Top Panel - Product Header */}
+        <header className="menu-bg">
+          <div className="container mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              {/* Left side - Back button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onLeaveBoard}
+                className="bg-white/10 border-white/20 text-menu transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#D76500"
+                  e.currentTarget.style.borderColor = "#D76500"
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)"
+                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)"
+                }}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                {t("common.back")}
+              </Button>
+
+              {/* Center - Product name and logo */}
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/images/team-retrospective-logo-256x256.png"
+                  alt="Team Retrospective Logo"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6"
+                />
+                <h1 className="text-xl font-semibold text-menu">{t("retroBoard.teamRetrospective")}</h1>
+              </div>
+
+              {/* Right side - Action buttons */}
+              <div className="flex items-center gap-2">
+                {/* Main Menu with Board Actions, Language, and Logout */}
+                <div className="relative z-10">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-white/10 border-white/20 text-menu transition-colors"
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#D76500"
+                          e.currentTarget.style.borderColor = "#D76500"
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)"
+                          e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)"
+                        }}
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="z-50 bg-white">
+                      {/* Language Selection Submenu */}
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger className="cursor-pointer">
+                          <Globe className="w-4 h-4 mr-2" />
+                          {t("language.select")}
+                          <ChevronRight className="w-4 h-4 ml-auto" />
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent className="bg-white">
+                          <DropdownMenuItem
+                            onClick={() => setLanguage("en")}
+                            className={`cursor-pointer ${language === "en" ? "bg-primary/10" : ""}`}
+                          >
+                            {t("language.en")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setLanguage("lv")}
+                            className={`cursor-pointer ${language === "lv" ? "bg-primary/10" : ""}`}
+                          >
+                            {t("language.lv")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setLanguage("lt")}
+                            className={`cursor-pointer ${language === "lt" ? "bg-primary/10" : ""}`}
+                          >
+                            {t("language.lt")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setLanguage("no")}
+                            className={`cursor-pointer ${language === "no" ? "bg-primary/10" : ""}`}
+                          >
+                            {t("language.no")}
+                          </DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+
+                      <DropdownMenuSeparator />
+
+                      {/* Board Actions */}
+                      <DropdownMenuItem onClick={archiveBoard} className="cursor-pointer">
+                        <Archive className="w-4 h-4 mr-2" />
+                        {t("common.archiveBoard")}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+
+                      {/* Delete Board */}
+                      <DropdownMenuItem
+                        onClick={deleteBoard}
+                        className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {t("common.deleteBoard")}
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator />
+
+                      {/* Logout */}
+                      <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        {t("common.logout")}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Board Information Area */}
+        <div className="bg-white border-b border-primary/20">
+          <div className="container mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-semibold text-primary-custom">{board.name}</h2>
+                    {/* Board Status Badge */}
+                    <Badge className={`border ${getStatusBadgeColor(boardStatus as BoardStatus)} flex items-center`}>
+                      {getStatusIcon(boardStatus as BoardStatus)}
+                      {getStatusLabel(boardStatus as BoardStatus)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                    <span>
+                      {t("common.boardId")}: {boardId}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      <span>
+                        {board.participants.length} {t("common.participants")}
+                      </span>
+                    </div>
+                    {isCreator && (
+                      <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
+                        {t("common.creator")}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Status transition buttons and other actions */}
+              <div className="flex items-center gap-2">
+                {/* Status transition buttons */}
+                <StatusButtons />
+
+                {/* Add larger gap before Timer */}
+                <div className="w-6"></div>
+
+                {/* Timer Component */}
+                <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} />
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyBoardLink}
+                  className="text-white transition-colors"
+                  style={{
+                    backgroundColor: "#1f4e66",
+                    color: "white",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#D76500"
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1f4e66"
+                  }}
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  {t("common.shareLink")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Planning Content */}
+        <div className="container mx-auto p-6">
+          <div className="max-w-4xl mx-auto">
+            <Card className="border-2 border-green-300 bg-green-50">
+              <CardHeader>
+                <CardTitle className="text-xl text-primary flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Action Planning - Items with Votes
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Items are ordered by vote count (highest first). Add action items for each retrospective item.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {actionPlanningItems.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No items received votes. Go back to voting to add votes.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {actionPlanningItems.map((item, index) => (
+                      <Card key={item.id} className="bg-white/70 border-primary/20">
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            {/* Item header with vote count and category */}
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="bg-primary/10 text-primary">
+                                  #{index + 1}
+                                </Badge>
+                                <span className="text-lg">{getCategoryIcon(item.category)}</span>
+                                <Badge className="bg-amber-100 text-amber-800 border-amber-300 flex items-center">
+                                  <ThumbsUp className="w-3 h-3 mr-1" />
+                                  {item.votes?.length || 0} votes
+                                </Badge>
+                              </div>
+                              <Badge variant="outline" className="text-xs">
+                                by {item.authorName}
+                              </Badge>
+                            </div>
+
+                            {/* Retrospective item content */}
+                            <div className="bg-white/50 p-3 rounded-md border border-primary/10">
+                              <p className="text-sm text-primary-custom font-medium">{item.content}</p>
+                            </div>
+
+                            {/* Action item section */}
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-primary-custom flex items-center gap-1">
+                                <Target className="w-4 h-4" />
+                                Action Item:
+                              </label>
+                              {editingActionItem === item.id ? (
+                                <div className="space-y-2">
+                                  <Input
+                                    value={actionItemContent}
+                                    onChange={(e) => setActionItemContent(e.target.value)}
+                                    placeholder="Enter action item for this retrospective item..."
+                                    className="border-primary/30 focus:border-primary"
+                                  />
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => saveActionItem(item.id)}
+                                      className="bg-primary hover:bg-primary/90"
+                                    >
+                                      <Check className="w-3 h-3 mr-1" />
+                                      Save
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={cancelEditActionItem}
+                                      className="border-primary/30"
+                                    >
+                                      <X className="w-3 h-3 mr-1" />
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div
+                                  className="min-h-[40px] p-3 border border-primary/20 rounded-md bg-white/50 cursor-pointer hover:bg-white/70 transition-colors flex items-center"
+                                  onClick={() => startEditActionItem(item)}
+                                >
+                                  {item.actionItem ? (
+                                    <p className="text-sm text-primary-custom">{item.actionItem}</p>
+                                  ) : (
+                                    <p className="text-sm text-muted-foreground italic">Click to add action item...</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen main-bg">

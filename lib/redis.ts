@@ -14,6 +14,7 @@ export interface RetroItem {
   isRevealed: boolean
   createdAt: number
   votes: string[] // Array of usernames who voted for this item
+  actionItem?: string // Action item for this retrospective item
 }
 
 export type BoardStatus = "registering" | "voting" | "action-planning" | "closed"
