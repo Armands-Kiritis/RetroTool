@@ -881,7 +881,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                 <div className="w-6"></div>
 
                 {/* Timer Component */}
-                <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} />
+                <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} isCreator={isCreator} />
 
                 <Button
                   variant="outline"
@@ -1193,6 +1193,8 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
 
                 {/* Add larger gap before Timer */}
                 <div className="w-6"></div>
+
+                <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} isCreator={isCreator} />
 
                 <Button
                   variant="outline"
@@ -1577,7 +1579,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
               <div className="w-6"></div>
 
               {/* Timer Component */}
-              <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} />
+              <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} isCreator={isCreator} />
 
               {board.isArchived && (
                 <Button
@@ -1896,7 +1898,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default RetroBoard;
+export default RetroBoard
