@@ -1534,7 +1534,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
             <div className="flex items-center gap-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold text-primary-custom">{board.name}</h2>
+                  <h2 className="text-xl font-semibold text-gray-800">{board.name}</h2>
                   {/* Board Status Badge */}
                   <Badge className={`border ${getStatusBadgeColor(boardStatus as BoardStatus)} flex items-center`}>
                     {getStatusIcon(boardStatus as BoardStatus)}
@@ -1655,7 +1655,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         <div className="grid md:grid-cols-3 gap-6">
           {(["glad", "mad", "sad"] as const).map((category) => (
             <div key={category} className={`${getCategoryColor(category)} rounded-lg p-6 space-y-4`}>
-              <h3 className="text-xl font-semibold text-primary">{getCategoryTitle(category)}</h3>
+              <h3 className="text-xl font-semibold text-gray-800">{getCategoryTitle(category)}</h3>
               <CardContent className="space-y-4">
                 {/* Add new item - only in registering state */}
                 {!board.isArchived && boardStatus === "registering" && (
@@ -1664,7 +1664,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                       placeholder={getEmotionPlaceholder(category)}
                       value={newItems[category]}
                       onChange={(e) => setNewItems({ ...newItems, [category]: e.target.value })}
-                      className="min-h-[80px] border-primary/30 focus:border-primary bg-white/70"
+                      className="min-h-[80px] border-gray-300 focus:border-gray-500 bg-white/70"
                     />
                     <div className="flex justify-end">
                       <Button
@@ -1710,17 +1710,17 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                       >
                         <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
                           {isAuthorCollapsed(category, authorGroup.authorName) ? (
-                            <ChevronRight className="w-4 h-4 text-primary" />
+                            <ChevronRight className="w-4 h-4 text-gray-600" />
                           ) : (
-                            <ChevronDown className="w-4 h-4 text-primary" />
+                            <ChevronDown className="w-4 h-4 text-gray-600" />
                           )}
                         </Button>
-                        <div className="w-2 h-2 bg-primary rounded-full"></div>
-                        <span className="text-sm font-medium text-primary-custom">
+                        <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
+                        <span className="text-sm font-medium text-gray-800">
                           {authorGroup.authorName}
                           {authorGroup.authorName === (user?.username || user?.name) && " (you)"}
                         </span>
-                        <div className="flex-1 h-px bg-primary/20"></div>
+                        <div className="flex-1 h-px bg-gray-300"></div>
                         <span className="text-xs text-muted-foreground">
                           {authorGroup.items.length} {authorGroup.items.length === 1 ? "item" : "items"}
                         </span>
@@ -1751,7 +1751,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                             <Textarea
                                               value={editContent}
                                               onChange={(e) => setEditContent(e.target.value)}
-                                              className="min-h-[60px] border-primary/30 focus:border-primary text-sm p-0"
+                                              className="min-h-[60px] border-gray-300 focus:border-gray-500 text-sm p-0"
                                             />
                                             <div className="flex gap-2">
                                               <Button
@@ -1767,7 +1767,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                                 size="sm"
                                                 variant="outline"
                                                 onClick={cancelEditItem}
-                                                className="border-primary/30"
+                                                className="border-gray-300"
                                               >
                                                 <X className="w-3 h-3 mr-1" />
                                                 {t("retroBoard.cancel")}
@@ -1832,9 +1832,9 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                                 }
                                               >
                                                 {item.isRevealed ? (
-                                                  <EyeOff className="w-4 h-4 text-primary" />
+                                                  <EyeOff className="w-4 h-4 text-gray-600" />
                                                 ) : (
-                                                  <Eye className="w-4 h-4 text-primary" />
+                                                  <Eye className="w-4 h-4 text-gray-600" />
                                                 )}
                                               </Button>
                                               <DropdownMenu>
@@ -1845,7 +1845,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                                     className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
                                                     onClick={(e) => e.stopPropagation()}
                                                   >
-                                                    <MoreVertical className="w-4 h-4 text-primary" />
+                                                    <MoreVertical className="w-4 h-4 text-gray-600" />
                                                   </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="z-50 bg-white">
@@ -1882,7 +1882,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                 {/* Status badges */}
                                 {item.isRevealed && editingItem !== item.id && boardStatus === "registering" && (
                                   <div className="mt-2 pl-0">
-                                    <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
+                                    <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700">
                                       {t("retroBoard.revealed")}
                                     </Badge>
                                   </div>
