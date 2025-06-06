@@ -71,11 +71,11 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const { t, language, setLanguage } = useLanguage()
   const [board, setBoard] = useState<RetroBoardType | null>(null)
   const [items, setItems] = useState<RetroItem[]>([])
-  const [newItems, setNewItems] = {
+  const [newItems, setNewItems] = useState({
     glad: "",
     mad: "",
     sad: "",
-  }
+  })
   const [loading, setLoading] = useState(false)
   const [editingItem, setEditingItem] = useState<string | null>(null)
   const [editContent, setEditContent] = useState("")
@@ -1901,7 +1901,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default RetroBoard;
+export default RetroBoard
