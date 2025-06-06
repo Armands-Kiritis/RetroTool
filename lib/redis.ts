@@ -13,6 +13,7 @@ export interface RetroItem {
   authorName: string
   isRevealed: boolean
   createdAt: number
+  votes: string[] // Array of usernames who voted for this item
 }
 
 export type BoardStatus = "registering" | "voting" | "action-planning" | "closed"

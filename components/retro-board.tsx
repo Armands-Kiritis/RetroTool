@@ -33,6 +33,7 @@ import {
   CheckCircle,
   LockIcon,
   ClipboardList,
+  ThumbsUp,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -44,6 +45,16 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Timer } from "@/components/timer"
 import type { RetroItem, RetroBoard as RetroBoardType, BoardStatus } from "@/lib/redis"
 import Image from "next/image"
@@ -68,6 +79,8 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const [editContent, setEditContent] = useState("")
   const [collapsedAuthors, setCollapsedAuthors] = useState<Record<string, boolean>>({})
   const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [showVotingConfirm, setShowVotingConfirm] = useState(false)
+  const [userVotesRemaining, setUserVotesRemaining] = useState(5)
 
   const fetchBoard = async () => {
     try {
@@ -76,6 +89,15 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         const boardData = await response.json()
         setBoard(boardData)
         setItems(boardData.items || [])
+
+        // Calculate user's remaining votes
+        if (user && boardData.items) {
+          const userVotes = boardData.items.reduce((total: number, item: RetroItem) => {
+            if (!item.votes) return total
+            return total + item.votes.filter((vote) => vote === (user.username || user.name)).length
+          }, 0)
+          setUserVotesRemaining(5 - userVotes)
+        }
       }
     } catch (error) {
       console.error("Failed to fetch board:", error)
@@ -89,7 +111,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   }, [boardId])
 
   const addItem = async (category: "glad" | "mad" | "sad") => {
-    if (!newItems[category].trim() || !user || board?.isArchived) return
+    if (!newItems[category].trim() || !user || board?.isArchived || board?.status !== "registering") return
 
     setLoading(true)
     try {
@@ -115,7 +137,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   }
 
   const toggleItemVisibility = async (itemId: string, currentlyRevealed: boolean) => {
-    if (!user || board?.isArchived) return
+    if (!user || board?.isArchived || board?.status !== "registering") return
 
     try {
       const response = await fetch(`/api/boards/${boardId}/items/${itemId}/reveal`, {
@@ -132,6 +154,39 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
       }
     } catch (error) {
       console.error(`Failed to ${currentlyRevealed ? "hide" : "reveal"} item:`, error)
+    }
+  }
+
+  const voteForItem = async (itemId: string) => {
+    if (!user || board?.isArchived || board?.status !== "voting") return
+
+    const item = items.find((i) => i.id === itemId)
+    if (!item) return
+
+    const hasVoted = item.votes?.includes(user.username || user.name) || false
+    const action = hasVoted ? "unvote" : "vote"
+
+    try {
+      const response = await fetch(`/api/boards/${boardId}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          itemId,
+          userName: user.username || user.name,
+          action,
+        }),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        setUserVotesRemaining(result.userVotesRemaining)
+        fetchBoard()
+      } else {
+        const error = await response.json()
+        alert(error.error || "Failed to process vote")
+      }
+    } catch (error) {
+      console.error("Failed to vote:", error)
     }
   }
 
@@ -197,6 +252,15 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
       console.error("Failed to delete item:", error)
       alert(t("retroBoard.deleteFailed"))
     }
+  }
+
+  const handleStartVoting = () => {
+    setShowVotingConfirm(true)
+  }
+
+  const confirmStartVoting = async () => {
+    setShowVotingConfirm(false)
+    await updateBoardStatus("voting")
   }
 
   const updateBoardStatus = async (status: BoardStatus) => {
@@ -418,6 +482,11 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     }
   }
 
+  const hasUserVotedForItem = (item: RetroItem) => {
+    if (!item.votes || !user) return false
+    return item.votes.includes(user.username || user.name)
+  }
+
   // Status transition buttons
   const StatusButtons = () => {
     if (!board || board.isArchived) return null
@@ -448,7 +517,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => updateBoardStatus("voting")}
+            onClick={handleStartVoting}
             disabled={updatingStatus}
             className="text-white transition-colors"
             style={buttonStyle}
@@ -571,6 +640,24 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
 
   return (
     <div className="min-h-screen main-bg">
+      {/* Voting Confirmation Dialog */}
+      <AlertDialog open={showVotingConfirm} onOpenChange={setShowVotingConfirm}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-primary">Start Voting Phase</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will reveal all items and stop the ability to add new items. Do you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmStartVoting} className="bg-primary hover:bg-primary/90">
+              Yes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Top Panel - Product Header */}
       <header className="menu-bg">
         <div className="container mx-auto px-6 py-4">
@@ -720,6 +807,13 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                       {t("common.archived")}
                     </Badge>
                   )}
+                  {/* Voting Status */}
+                  {boardStatus === "voting" && user && (
+                    <Badge className="bg-amber-100 text-amber-800 border-amber-300 flex items-center">
+                      <ThumbsUp className="w-3 h-3 mr-1" />
+                      {userVotesRemaining > 0 ? `${userVotesRemaining} votes left` : "You have voted"}
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                   <span>
@@ -826,8 +920,8 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                 <CardTitle className="text-xl text-primary">{getCategoryTitle(category)}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Add new item - disabled if archived or not in registering/voting phase */}
-                {!board.isArchived && (boardStatus === "registering" || boardStatus === "voting") && (
+                {/* Add new item - only in registering state */}
+                {!board.isArchived && boardStatus === "registering" && (
                   <div className="space-y-2">
                     <Textarea
                       placeholder={getEmotionPlaceholder(category)}
@@ -899,7 +993,17 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                       {!isAuthorCollapsed(category, authorGroup.authorName) && (
                         <div className="space-y-2 ml-6">
                           {authorGroup.items.map((item) => (
-                            <Card key={item.id} className="bg-white/70 border-primary/20">
+                            <Card
+                              key={item.id}
+                              className={`bg-white/70 border-primary/20 ${
+                                boardStatus === "voting" && !board.isArchived
+                                  ? "cursor-pointer hover:bg-white/90 transition-colors"
+                                  : ""
+                              }`}
+                              onClick={() =>
+                                boardStatus === "voting" && !board.isArchived ? voteForItem(item.id) : undefined
+                              }
+                            >
                               <CardContent className="px-4 py-4">
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="flex-1">
@@ -946,62 +1050,98 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                     )}
                                   </div>
 
-                                  {item.authorName === (user?.username || user?.name) &&
-                                    !board.isArchived &&
-                                    (boardStatus === "registering" || boardStatus === "voting") && (
-                                      <div className="flex gap-1">
-                                        {editingItem !== item.id && (
-                                          <>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              onClick={() => toggleItemVisibility(item.id, item.isRevealed)}
-                                              className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
-                                              title={
-                                                item.isRevealed ? t("retroBoard.hideItem") : t("retroBoard.revealItem")
-                                              }
-                                            >
-                                              {item.isRevealed ? (
-                                                <EyeOff className="w-4 h-4 text-primary" />
-                                              ) : (
-                                                <Eye className="w-4 h-4 text-primary" />
-                                              )}
-                                            </Button>
-                                            <DropdownMenu>
-                                              <DropdownMenuTrigger asChild>
-                                                <Button
-                                                  variant="ghost"
-                                                  size="sm"
-                                                  className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
-                                                >
-                                                  <MoreVertical className="w-4 h-4 text-primary" />
-                                                </Button>
-                                              </DropdownMenuTrigger>
-                                              <DropdownMenuContent align="end" className="z-50 bg-white">
-                                                <DropdownMenuItem
-                                                  onClick={() => startEditItem(item)}
-                                                  className="cursor-pointer"
-                                                >
-                                                  <Edit3 className="w-4 h-4 mr-2" />
-                                                  {t("retroBoard.editItem")}
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem
-                                                  onClick={() => deleteItem(item.id)}
-                                                  className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                >
-                                                  <Trash2 className="w-4 h-4 mr-2" />
-                                                  {t("retroBoard.deleteItem")}
-                                                </DropdownMenuItem>
-                                              </DropdownMenuContent>
-                                            </DropdownMenu>
-                                          </>
+                                  {/* Action buttons */}
+                                  <div className="flex gap-1">
+                                    {/* Voting button - only in voting state */}
+                                    {boardStatus === "voting" && !board.isArchived && (
+                                      <div className="flex items-center gap-1">
+                                        {item.votes && item.votes.length > 0 && (
+                                          <Badge
+                                            variant="secondary"
+                                            className={`text-xs ${
+                                              hasUserVotedForItem(item)
+                                                ? "bg-amber-100 text-amber-800 border-amber-300"
+                                                : "bg-gray-100 text-gray-800"
+                                            }`}
+                                          >
+                                            <ThumbsUp className="w-3 h-3 mr-1" />
+                                            {item.votes.length}
+                                          </Badge>
                                         )}
                                       </div>
                                     )}
+
+                                    {/* Edit/Delete buttons - only for own items in registering state */}
+                                    {item.authorName === (user?.username || user?.name) &&
+                                      !board.isArchived &&
+                                      boardStatus === "registering" && (
+                                        <>
+                                          {editingItem !== item.id && (
+                                            <>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={(e) => {
+                                                  e.stopPropagation()
+                                                  toggleItemVisibility(item.id, item.isRevealed)
+                                                }}
+                                                className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
+                                                title={
+                                                  item.isRevealed
+                                                    ? t("retroBoard.hideItem")
+                                                    : t("retroBoard.revealItem")
+                                                }
+                                              >
+                                                {item.isRevealed ? (
+                                                  <EyeOff className="w-4 h-4 text-primary" />
+                                                ) : (
+                                                  <Eye className="w-4 h-4 text-primary" />
+                                                )}
+                                              </Button>
+                                              <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                  >
+                                                    <MoreVertical className="w-4 h-4 text-primary" />
+                                                  </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="z-50 bg-white">
+                                                  <DropdownMenuItem
+                                                    onClick={(e) => {
+                                                      e.stopPropagation()
+                                                      startEditItem(item)
+                                                    }}
+                                                    className="cursor-pointer"
+                                                  >
+                                                    <Edit3 className="w-4 h-4 mr-2" />
+                                                    {t("retroBoard.editItem")}
+                                                  </DropdownMenuItem>
+                                                  <DropdownMenuSeparator />
+                                                  <DropdownMenuItem
+                                                    onClick={(e) => {
+                                                      e.stopPropagation()
+                                                      deleteItem(item.id)
+                                                    }}
+                                                    className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                  >
+                                                    <Trash2 className="w-4 h-4 mr-2" />
+                                                    {t("retroBoard.deleteItem")}
+                                                  </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                              </DropdownMenu>
+                                            </>
+                                          )}
+                                        </>
+                                      )}
+                                  </div>
                                 </div>
 
-                                {item.isRevealed && editingItem !== item.id && (
+                                {/* Status badges */}
+                                {item.isRevealed && editingItem !== item.id && boardStatus === "registering" && (
                                   <div className="mt-2 pl-0">
                                     <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
                                       {t("retroBoard.revealed")}

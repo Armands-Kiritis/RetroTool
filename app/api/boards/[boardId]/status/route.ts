@@ -16,6 +16,18 @@ export async function PATCH(request: NextRequest, { params }: { params: { boardI
       return NextResponse.json({ error: "Board not found" }, { status: 404 })
     }
 
+    // Special handling when transitioning to voting state
+    if (status === "voting" && board.status === "registering") {
+      // Reveal all items
+      board.items.forEach((item) => {
+        item.isRevealed = true
+        // Initialize votes array if it doesn't exist
+        if (!item.votes) {
+          item.votes = []
+        }
+      })
+    }
+
     // Update board status
     board.status = status as BoardStatus
     await redis.set(`board:${params.boardId}`, board)
