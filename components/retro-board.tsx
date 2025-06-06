@@ -19,11 +19,12 @@ import {
   AlertCircle,
   MoreVertical,
   LogOut,
-  User,
   Trash2,
   Edit3,
   Check,
   X,
+  Globe,
+  ChevronRight,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -31,10 +32,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Timer } from "@/components/timer"
-import { LanguageSwitcher } from "./language-switcher"
 import type { RetroItem, RetroBoard as RetroBoardType } from "@/lib/redis"
+import Image from "next/image"
 
 interface RetroBoardProps {
   boardId: string
@@ -43,7 +47,7 @@ interface RetroBoardProps {
 
 export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const { user, clearUser } = useUser()
-  const { t } = useLanguage()
+  const { t, language, setLanguage } = useLanguage()
   const [board, setBoard] = useState<RetroBoardType | null>(null)
   const [items, setItems] = useState<RetroItem[]>([])
   const [newItems, setNewItems] = useState({
@@ -271,7 +275,28 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   }
 
   const getItemsByCategory = (category: "glad" | "mad" | "sad") => {
-    return items.filter((item) => item.category === category)
+    const categoryItems = items.filter((item) => item.category === category)
+
+    // Group items by author
+    const groupedByAuthor = categoryItems.reduce(
+      (groups, item) => {
+        const authorName = item.authorName
+        if (!groups[authorName]) {
+          groups[authorName] = []
+        }
+        groups[authorName].push(item)
+        return groups
+      },
+      {} as Record<string, RetroItem[]>,
+    )
+
+    // Sort authors alphabetically and return grouped items
+    const sortedAuthors = Object.keys(groupedByAuthor).sort()
+
+    return sortedAuthors.map((authorName) => ({
+      authorName,
+      items: groupedByAuthor[authorName].sort((a, b) => a.createdAt - b.createdAt), // Sort items within group by creation time
+    }))
   }
 
   const getCategoryColor = (category: "glad" | "mad" | "sad") => {
@@ -313,25 +338,152 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
 
   return (
     <div className="min-h-screen main-bg">
+      {/* Top Panel - Product Header */}
       <header className="menu-bg">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
+            {/* Left side - Back button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onLeaveBoard}
+              className="bg-white/10 border-white/20 text-menu transition-colors"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#D76500"
+                e.currentTarget.style.borderColor = "#D76500"
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)"
+                e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)"
+              }}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {t("common.back")}
+            </Button>
+
+            {/* Center - Product name and logo */}
+            <div className="flex items-center gap-3">
+              <Image
+                src="/images/team-retrospective-logo-256x256.png"
+                alt="Team Retrospective Logo"
+                width={24}
+                height={24}
+                className="w-6 h-6"
+              />
+              <h1 className="text-xl font-semibold text-menu">{t("retroBoard.teamRetrospective")}</h1>
+            </div>
+
+            {/* Right side - Action buttons */}
+            <div className="flex items-center gap-2">
+              {/* Main Menu with Board Actions, Language, and Logout */}
+              <div className="relative z-10">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/10 border-white/20 text-menu transition-colors"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#D76500"
+                        e.currentTarget.style.borderColor = "#D76500"
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)"
+                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)"
+                      }}
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="z-50 bg-white">
+                    {/* Language Selection Submenu */}
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger className="cursor-pointer">
+                        <Globe className="w-4 h-4 mr-2" />
+                        {t("language.select")}
+                        <ChevronRight className="w-4 h-4 ml-auto" />
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="bg-white">
+                        <DropdownMenuItem
+                          onClick={() => setLanguage("en")}
+                          className={`cursor-pointer ${language === "en" ? "bg-primary/10" : ""}`}
+                        >
+                          {t("language.en")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setLanguage("lv")}
+                          className={`cursor-pointer ${language === "lv" ? "bg-primary/10" : ""}`}
+                        >
+                          {t("language.lv")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setLanguage("lt")}
+                          className={`cursor-pointer ${language === "lt" ? "bg-primary/10" : ""}`}
+                        >
+                          {t("language.lt")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setLanguage("no")}
+                          className={`cursor-pointer ${language === "no" ? "bg-primary/10" : ""}`}
+                        >
+                          {t("language.no")}
+                        </DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+
+                    <DropdownMenuSeparator />
+
+                    {/* Board Actions - only for non-archived boards */}
+                    {!board.isArchived && (
+                      <>
+                        <DropdownMenuItem onClick={archiveBoard} className="cursor-pointer">
+                          <Archive className="w-4 h-4 mr-2" />
+                          {t("common.archiveBoard")}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+
+                    {/* Delete Board - available for all boards */}
+                    <DropdownMenuItem
+                      onClick={deleteBoard}
+                      className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {t("common.deleteBoard")}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    {/* Logout */}
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      {t("common.logout")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Board Information Area */}
+      <div className="bg-white border-b border-primary/20">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={onLeaveBoard} className="text-menu hover:bg-white/10">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                {t("common.back")}
-              </Button>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-semibold text-menu">{board.name}</h1>
+                  <h2 className="text-xl font-semibold text-primary-custom">{board.name}</h2>
                   {board.isArchived && (
-                    <Badge variant="secondary" className="bg-white/20 text-menu">
+                    <Badge variant="secondary" className="bg-primary/10 text-primary">
                       <Archive className="w-3 h-3 mr-1" />
                       {t("common.archived")}
                     </Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-4 text-sm text-menu/80">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                   <span>
                     {t("common.boardId")}: {boardId}
                   </span>
@@ -342,37 +494,16 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                     </span>
                   </div>
                   {isCreator && (
-                    <Badge variant="secondary" className="bg-white/10 text-menu text-xs">
+                    <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
                       {t("common.creator")}
                     </Badge>
                   )}
                 </div>
               </div>
             </div>
+
+            {/* Moved Timer and Share Link to board info panel */}
             <div className="flex items-center gap-2">
-              {/* Language Switcher */}
-              <LanguageSwitcher />
-
-              {/* User Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-white/10 border-white/20 text-menu hover:bg-white/20"
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    {user?.username || user?.name}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="z-50 bg-white">
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    {t("common.logout")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
               {/* Timer Component */}
               <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} />
 
@@ -381,82 +512,46 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                   variant="outline"
                   size="sm"
                   onClick={unarchiveBoard}
-                  className="bg-white/10 border-white/20 text-menu hover:bg-white/20"
+                  className="text-white transition-colors"
+                  style={{
+                    backgroundColor: "#1f4e66",
+                    color: "white",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#D76500"
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1f4e66"
+                  }}
                 >
                   <ArchiveRestore className="w-4 h-4 mr-2" />
                   {t("common.unarchive")}
                 </Button>
               )}
+
               <Button
                 variant="outline"
                 size="sm"
                 onClick={copyBoardLink}
-                className="bg-white/10 border-white/20 text-menu hover:bg-white/20"
+                className="text-white transition-colors"
+                style={{
+                  backgroundColor: "#1f4e66",
+                  color: "white",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#D76500"
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#1f4e66"
+                }}
               >
                 <Copy className="w-4 h-4 mr-2" />
                 {t("common.shareLink")}
               </Button>
-
-              {/* Board Actions Menu - Available to all users for non-archived boards, but delete only for creator */}
-              {!board.isArchived && (
-                <div className="relative z-10">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-white/10 border-white/20 text-menu hover:bg-white/20"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="z-50 bg-white">
-                      <DropdownMenuItem onClick={archiveBoard} className="cursor-pointer">
-                        <Archive className="w-4 h-4 mr-2" />
-                        {t("common.archiveBoard")}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={deleteBoard}
-                        className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        {t("common.deleteBoard")}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              )}
-
-              {/* Delete option for archived boards (creator only) */}
-              {board.isArchived && (
-                <div className="relative z-10">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-white/10 border-white/20 text-menu hover:bg-white/20"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="z-50 bg-white">
-                      <DropdownMenuItem
-                        onClick={deleteBoard}
-                        className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        {t("common.deleteBoard")}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              )}
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {board.isArchived && (
         <div className="container mx-auto px-6 pt-4">
@@ -494,133 +589,173 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                       placeholder={getEmotionPlaceholder(category)}
                       value={newItems[category]}
                       onChange={(e) => setNewItems({ ...newItems, [category]: e.target.value })}
-                      className="min-h-[80px] border-primary/30 focus:border-primary"
+                      className="min-h-[80px] border-primary/30 focus:border-primary bg-white/70"
                     />
-                    <Button
-                      onClick={() => addItem(category)}
-                      disabled={loading || !newItems[category].trim()}
-                      className="w-full bg-primary hover:bg-primary/90"
-                      size="sm"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      {t("retroBoard.addItem")}
-                    </Button>
+                    <div className="flex justify-end">
+                      <Button
+                        onClick={() => addItem(category)}
+                        disabled={loading || !newItems[category].trim()}
+                        size="sm"
+                        className="transition-colors"
+                        style={{
+                          backgroundColor: "#1f4e66",
+                          color: "white",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!e.currentTarget.disabled) {
+                            e.currentTarget.style.backgroundColor = "#D76500"
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!e.currentTarget.disabled) {
+                            e.currentTarget.style.backgroundColor = "#1f4e66"
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (!e.currentTarget.disabled) {
+                            e.currentTarget.style.backgroundColor = "#1f4e66"
+                          }
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        {t("retroBoard.addItem")}
+                      </Button>
+                    </div>
                   </div>
                 )}
 
                 {/* Existing items */}
-                <div className="space-y-3">
-                  {getItemsByCategory(category).map((item) => (
-                    <Card key={item.id} className="bg-white/70 border-primary/20">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1">
-                            {item.isRevealed || item.authorName === (user?.username || user?.name) ? (
-                              <div>
-                                {editingItem === item.id ? (
-                                  <div className="space-y-2">
-                                    <Textarea
-                                      value={editContent}
-                                      onChange={(e) => setEditContent(e.target.value)}
-                                      className="min-h-[60px] border-primary/30 focus:border-primary text-sm"
-                                    />
-                                    <div className="flex gap-2">
-                                      <Button
-                                        size="sm"
-                                        onClick={() => saveEditItem(item.id)}
-                                        disabled={!editContent.trim()}
-                                        className="bg-primary hover:bg-primary/90"
-                                      >
-                                        <Check className="w-3 h-3 mr-1" />
-                                        {t("retroBoard.save")}
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={cancelEditItem}
-                                        className="border-primary/30"
-                                      >
-                                        <X className="w-3 h-3 mr-1" />
-                                        {t("retroBoard.cancel")}
-                                      </Button>
+                <div className="space-y-4">
+                  {getItemsByCategory(category).map((authorGroup) => (
+                    <div key={authorGroup.authorName} className="space-y-2">
+                      {/* Author header - removed px-2 padding */}
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        <span className="text-sm font-medium text-primary-custom">
+                          {authorGroup.authorName}
+                          {authorGroup.authorName === (user?.username || user?.name) && " (you)"}
+                        </span>
+                        <div className="flex-1 h-px bg-primary/20"></div>
+                        <span className="text-xs text-muted-foreground">
+                          {authorGroup.items.length} {authorGroup.items.length === 1 ? "item" : "items"}
+                        </span>
+                      </div>
+
+                      {/* Author's items */}
+                      <div className="space-y-2">
+                        {authorGroup.items.map((item) => (
+                          <Card key={item.id} className="bg-white/70 border-primary/20">
+                            <CardContent className="px-4 py-4">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  {item.isRevealed || item.authorName === (user?.username || user?.name) ? (
+                                    <div>
+                                      {editingItem === item.id ? (
+                                        <div className="space-y-2">
+                                          <Textarea
+                                            value={editContent}
+                                            onChange={(e) => setEditContent(e.target.value)}
+                                            className="min-h-[60px] border-primary/30 focus:border-primary text-sm p-0"
+                                          />
+                                          <div className="flex gap-2">
+                                            <Button
+                                              size="sm"
+                                              onClick={() => saveEditItem(item.id)}
+                                              disabled={!editContent.trim()}
+                                              className="bg-primary hover:bg-primary/90"
+                                            >
+                                              <Check className="w-3 h-3 mr-1" />
+                                              {t("retroBoard.save")}
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={cancelEditItem}
+                                              className="border-primary/30"
+                                            >
+                                              <X className="w-3 h-3 mr-1" />
+                                              {t("retroBoard.cancel")}
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <p className="text-sm text-primary-custom">{item.content}</p>
+                                      )}
                                     </div>
-                                  </div>
-                                ) : (
-                                  <>
-                                    <p className="text-sm text-primary-custom">{item.content}</p>
-                                    <div className="flex items-center gap-2 mt-2">
-                                      <span className="text-xs text-muted-foreground">
-                                        {t("boardSelection.by")} {item.authorName}
+                                  ) : (
+                                    <div className="flex items-center gap-2 pl-0">
+                                      <span className="text-sm text-muted-foreground">
+                                        {t("retroBoard.hiddenItem", { name: item.authorName })}
                                       </span>
                                     </div>
-                                  </>
+                                  )}
+                                </div>
+
+                                {item.authorName === (user?.username || user?.name) && !board.isArchived && (
+                                  <div className="flex gap-1">
+                                    {editingItem !== item.id && (
+                                      <>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => toggleItemVisibility(item.id, item.isRevealed)}
+                                          className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
+                                          title={
+                                            item.isRevealed ? t("retroBoard.hideItem") : t("retroBoard.revealItem")
+                                          }
+                                        >
+                                          {item.isRevealed ? (
+                                            <EyeOff className="w-4 h-4 text-primary" />
+                                          ) : (
+                                            <Eye className="w-4 h-4 text-primary" />
+                                          )}
+                                        </Button>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
+                                            >
+                                              <MoreVertical className="w-4 h-4 text-primary" />
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end" className="z-50 bg-white">
+                                            <DropdownMenuItem
+                                              onClick={() => startEditItem(item)}
+                                              className="cursor-pointer"
+                                            >
+                                              <Edit3 className="w-4 h-4 mr-2" />
+                                              {t("retroBoard.editItem")}
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                              onClick={() => deleteItem(item.id)}
+                                              className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            >
+                                              <Trash2 className="w-4 h-4 mr-2" />
+                                              {t("retroBoard.deleteItem")}
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      </>
+                                    )}
+                                  </div>
                                 )}
                               </div>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 bg-primary/30 rounded-full animate-pulse" />
-                                <span className="text-sm text-muted-foreground">
-                                  {t("retroBoard.hiddenItem", { name: item.authorName })}
-                                </span>
-                              </div>
-                            )}
-                          </div>
 
-                          {item.authorName === (user?.username || user?.name) && !board.isArchived && (
-                            <div className="flex gap-1">
-                              {editingItem !== item.id && (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => toggleItemVisibility(item.id, item.isRevealed)}
-                                    className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
-                                    title={item.isRevealed ? t("retroBoard.hideItem") : t("retroBoard.revealItem")}
-                                  >
-                                    {item.isRevealed ? (
-                                      <EyeOff className="w-4 h-4 text-primary" />
-                                    ) : (
-                                      <Eye className="w-4 h-4 text-primary" />
-                                    )}
-                                  </Button>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
-                                      >
-                                        <MoreVertical className="w-4 h-4 text-primary" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="z-50 bg-white">
-                                      <DropdownMenuItem onClick={() => startEditItem(item)} className="cursor-pointer">
-                                        <Edit3 className="w-4 h-4 mr-2" />
-                                        {t("retroBoard.editItem")}
-                                      </DropdownMenuItem>
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem
-                                        onClick={() => deleteItem(item.id)}
-                                        className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
-                                      >
-                                        <Trash2 className="w-4 h-4 mr-2" />
-                                        {t("retroBoard.deleteItem")}
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </>
+                              {item.isRevealed && editingItem !== item.id && (
+                                <div className="mt-2 pl-0">
+                                  <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
+                                    {t("retroBoard.revealed")}
+                                  </Badge>
+                                </div>
                               )}
-                            </div>
-                          )}
-                        </div>
-
-                        {item.isRevealed && editingItem !== item.id && (
-                          <Badge variant="secondary" className="mt-2 text-xs bg-primary/10 text-primary">
-                            {t("retroBoard.revealed")}
-                          </Badge>
-                        )}
-                      </CardContent>
-                    </Card>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </CardContent>
