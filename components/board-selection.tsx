@@ -34,6 +34,7 @@ interface BoardSummary {
   isArchived: boolean
   archivedAt?: number
   archivedBy?: string
+  status?: string // Add status field
 }
 
 // Predefined colors for boards
@@ -97,10 +98,17 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
         params.append("userId", user.id)
       }
 
+      console.log("Fetching boards with params:", params.toString()) // Debug log
+
       const response = await fetch(`/api/boards/list?${params}`)
       if (response.ok) {
         const boards = await response.json()
+        console.log("Fetched boards:", boards) // Debug log
         setExistingBoards(boards)
+      } else {
+        console.error("Failed to fetch boards, response:", response.status, response.statusText)
+        const errorText = await response.text()
+        console.error("Error response:", errorText)
       }
     } catch (error) {
       console.error("Failed to fetch boards:", error)
@@ -562,7 +570,14 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                   </div>
                 ) : displayedBoards.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">{getEmptyMessage()}</p>
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">{getEmptyMessage()}</p>
+                    {existingBoards.length > 0 && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Total boards in database: {existingBoards.length}
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {displayedBoards.map((board) => (

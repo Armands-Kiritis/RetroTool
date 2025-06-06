@@ -20,6 +20,13 @@ export async function GET(request: NextRequest) {
     // Filter out null values and apply filters
     const validBoards = boards
       .filter((board): board is RetroBoard => board !== null)
+      .map((board) => {
+        // Ensure board has a status field (for backwards compatibility)
+        if (!board.status) {
+          board.status = "registering"
+        }
+        return board
+      })
       .filter((board) => includeArchived || !board.isArchived)
       .filter((board) => !userId || board.createdByUserId === userId)
       .sort((a, b) => b.createdAt - a.createdAt)
@@ -34,6 +41,7 @@ export async function GET(request: NextRequest) {
         isArchived: board.isArchived || false,
         archivedAt: board.archivedAt,
         archivedBy: board.archivedBy,
+        status: board.status || "registering", // Ensure status is included
       }))
 
     return NextResponse.json(validBoards)
