@@ -58,6 +58,28 @@ const BOARD_COLORS = [
   "#64748b", // slate-500
 ]
 
+// Predefined colors for author badges
+const AUTHOR_COLORS = [
+  { bg: "bg-red-100", text: "text-red-800", hover: "hover:bg-red-200" },
+  { bg: "bg-orange-100", text: "text-orange-800", hover: "hover:bg-orange-200" },
+  { bg: "bg-amber-100", text: "text-amber-800", hover: "hover:bg-amber-200" },
+  { bg: "bg-yellow-100", text: "text-yellow-800", hover: "hover:bg-yellow-200" },
+  { bg: "bg-lime-100", text: "text-lime-800", hover: "hover:bg-lime-200" },
+  { bg: "bg-green-100", text: "text-green-800", hover: "hover:bg-green-200" },
+  { bg: "bg-emerald-100", text: "text-emerald-800", hover: "hover:bg-emerald-200" },
+  { bg: "bg-teal-100", text: "text-teal-800", hover: "hover:bg-teal-200" },
+  { bg: "bg-cyan-100", text: "text-cyan-800", hover: "hover:bg-cyan-200" },
+  { bg: "bg-sky-100", text: "text-sky-800", hover: "hover:bg-sky-200" },
+  { bg: "bg-blue-100", text: "text-blue-800", hover: "hover:bg-blue-200" },
+  { bg: "bg-indigo-100", text: "text-indigo-800", hover: "hover:bg-indigo-200" },
+  { bg: "bg-violet-100", text: "text-violet-800", hover: "hover:bg-violet-200" },
+  { bg: "bg-purple-100", text: "text-purple-800", hover: "hover:bg-purple-200" },
+  { bg: "bg-fuchsia-100", text: "text-fuchsia-800", hover: "hover:bg-fuchsia-200" },
+  { bg: "bg-pink-100", text: "text-pink-800", hover: "hover:bg-pink-200" },
+  { bg: "bg-rose-100", text: "text-rose-800", hover: "hover:bg-rose-200" },
+  { bg: "bg-slate-100", text: "text-slate-800", hover: "hover:bg-slate-200" },
+]
+
 // Function to generate consistent color based on board ID
 const getBoardColor = (boardId: string): string => {
   let hash = 0
@@ -68,6 +90,18 @@ const getBoardColor = (boardId: string): string => {
   }
   const index = Math.abs(hash) % BOARD_COLORS.length
   return BOARD_COLORS[index]
+}
+
+// Function to generate consistent color for authors
+const getAuthorColor = (authorName: string) => {
+  let hash = 0
+  for (let i = 0; i < authorName.length; i++) {
+    const char = authorName.charCodeAt(i)
+    hash = (hash << 5) - hash + char
+    hash = hash & hash // Convert to 32-bit integer
+  }
+  const index = Math.abs(hash) % AUTHOR_COLORS.length
+  return AUTHOR_COLORS[index]
 }
 
 export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
@@ -675,14 +709,22 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                               </div>
                             </div>
                             <div
-                              className="flex items-center justify-between text-xs text-muted-foreground"
+                              className="flex items-center justify-between text-xs"
                               onClick={() => joinBoard(board.id)}
                             >
-                              <span>
-                                {t("boardSelection.by")} {board.createdBy}
-                                {board.createdByUserId === user?.id && " (you)"}
-                              </span>
-                              <span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">{t("boardSelection.by")}</span>
+                                <Badge
+                                  variant="secondary"
+                                  className={`text-xs ${getAuthorColor(board.createdBy).bg} ${
+                                    getAuthorColor(board.createdBy).text
+                                  } ${getAuthorColor(board.createdBy).hover}`}
+                                >
+                                  {board.createdBy}
+                                  {board.createdByUserId === user?.id && " (you)"}
+                                </Badge>
+                              </div>
+                              <span className="text-muted-foreground">
                                 {board.isArchived && board.archivedAt
                                   ? `${t("common.archived")} ${formatDate(board.archivedAt)}`
                                   : formatDate(board.createdAt)}
