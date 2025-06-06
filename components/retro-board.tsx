@@ -556,6 +556,9 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const StatusButtons = () => {
     if (!board || board.isArchived) return null
 
+    // Only show status transition buttons to the board creator
+    if (!isCreator) return null
+
     const buttonStyle = {
       backgroundColor: "#1f4e66",
       color: "white",
@@ -954,8 +957,11 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                               <label className="text-sm font-medium text-primary-custom flex items-center gap-1">
                                 <Target className="w-4 h-4" />
                                 Action Item:
+                                {!isCreator && (
+                                  <span className="text-xs text-muted-foreground ml-2">(Only board creator can edit)</span>
+                                )}
                               </label>
-                              {editingActionItem === item.id ? (
+                              {editingActionItem === item.id && isCreator ? (
                                 <div className="space-y-2">
                                   <Input
                                     value={actionItemContent}
@@ -985,13 +991,17 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                 </div>
                               ) : (
                                 <div
-                                  className="min-h-[40px] p-3 border border-primary/20 rounded-md bg-white cursor-pointer hover:bg-gray-50 transition-colors flex items-center"
-                                  onClick={() => startEditActionItem(item)}
+                                  className={`min-h-[40px] p-3 border border-primary/20 rounded-md bg-white ${
+                                    isCreator ? "cursor-pointer hover:bg-gray-50" : "cursor-not-allowed opacity-75"
+                                  } transition-colors flex items-center`}
+                                  onClick={() => isCreator && startEditActionItem(item)}
                                 >
                                   {item.actionItem ? (
                                     <p className="text-sm text-primary-custom">{item.actionItem}</p>
                                   ) : (
-                                    <p className="text-sm text-muted-foreground italic">Click to add action item...</p>
+                                    <p className="text-sm text-muted-foreground italic">
+                                      {isCreator ? "Click to add action item..." : "No action item set"}
+                                    </p>
                                   )}
                                 </div>
                               )}
@@ -1510,7 +1520,6 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
             </div>
           </div>
         </div>
-      </header>
 
       {/* Board Information Area */}
       <div className="bg-white border-b border-primary/20">
@@ -1886,7 +1895,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default RetroBoard
+export default RetroBoard;

@@ -15,6 +15,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { boardI
       return NextResponse.json({ error: "Action items can only be updated in action planning state" }, { status: 400 })
     }
 
+    // Only board creator can update action items
+    if (board.createdBy !== userName) {
+      return NextResponse.json({ error: "Only board creator can update action items" }, { status: 403 })
+    }
+
     const itemIndex = board.items.findIndex((item) => item.id === params.itemId)
     if (itemIndex === -1) {
       return NextResponse.json({ error: "Item not found" }, { status: 404 })

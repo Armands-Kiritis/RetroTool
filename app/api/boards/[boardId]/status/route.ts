@@ -16,6 +16,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { boardI
       return NextResponse.json({ error: "Board not found" }, { status: 404 })
     }
 
+    // Only board creator can change status
+    if (board.createdBy !== userName) {
+      return NextResponse.json({ error: "Only board creator can change board status" }, { status: 403 })
+    }
+
     // Special handling when transitioning to voting state
     if (status === "voting" && board.status === "registering") {
       // Reveal all items
