@@ -463,18 +463,19 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   }
 
   const getCategoryColor = (category: "glad" | "mad" | "sad") => {
-    const baseColors = {
-      glad: "bg-green-50 border-green-300",
-      mad: "bg-red-50 border-red-300",
-      sad: "bg-blue-50 border-blue-300",
-    }
-
-    if (board?.isArchived) {
-      return `${baseColors[category]} opacity-60`
-    }
-
-    return baseColors[category]
+  // Use gray background for all states to match action planning design
+  const baseColors = {
+    glad: "bg-gray-50 border-gray-300",
+    mad: "bg-gray-50 border-gray-300", 
+    sad: "bg-gray-50 border-gray-300",
   }
+
+  if (board?.isArchived) {
+    return `${baseColors[category]} opacity-60`
+  }
+
+  return baseColors[category]
+}
 
   const getCategoryTitle = (category: "glad" | "mad" | "sad") => {
     return t(`retroBoard.${category}`)
@@ -1895,7 +1896,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default RetroBoard;
+export default RetroBoard
