@@ -1289,7 +1289,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
           {(["glad", "mad", "sad"] as const).map((category) => (
             <Card key={category} className={`${getCategoryColor(category)} border-2`}>
               <CardHeader>
-                <CardTitle className="text-xl text-primary">{getCategoryTitle(category)}</CardHeader>
+                <CardTitle className="text-xl text-primary">{getCategoryTitle(category)}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Add new item - only in registering state */}
@@ -1536,3 +1536,5 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     </div>
   )
 }
+
+export default RetroBoard
