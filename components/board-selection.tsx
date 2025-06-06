@@ -323,6 +323,15 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
     })
   }
 
+  // First, let's make sure the status is properly capitalized for display
+  // Add this helper function after the formatDate function
+
+  const formatStatus = (status?: string) => {
+    if (!status) return ""
+    // Capitalize first letter and replace hyphens with spaces
+    return status.charAt(0).toUpperCase() + status.slice(1).replace(/-/g, " ")
+  }
+
   const filteredBoards = getFilteredBoards()
 
   const getBoardsTitle = () => {
@@ -647,11 +656,19 @@ export function BoardSelection({ onBoardSelected }: BoardSelectionProps) {
                               </span>
                             </div>
                             <div
-                              className="flex items-center gap-4 text-xs text-muted-foreground"
+                              className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap"
                               onClick={() => joinBoard(board.id)}
                             >
                               <span>Participants: {board.participantCount}</span>
                               <span>Issues: {board.itemCount}</span>
+                              {board.status && (
+                                <span className="flex items-center gap-1">
+                                  <span className="inline-block w-2 h-2 rounded-full bg-primary"></span>
+                                  <span>
+                                    {t(`retroBoard.status.${board.status}`, { fallback: formatStatus(board.status) })}
+                                  </span>
+                                </span>
+                              )}
                               {board.isArchived && (
                                 <div className="flex items-center gap-1">
                                   <Archive className="w-3 h-3" />
