@@ -611,7 +611,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
           item.votes?.length || 0,
         ])
 
-        // Add action items table
+        // Add action items table using autoTable
         autoTable(doc, {
           startY: 55,
           head: [["#", "Category", "Item", "Action", "Responsible", "Votes"]],
@@ -634,7 +634,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
 
       // Add retrospective items section by category
       const categories = ["glad", "mad", "sad"] as const
-      let yPosition = doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 20 : 70
+      let yPosition = (doc as any).lastAutoTable?.finalY + 20 || 70
 
       doc.setFontSize(16)
       doc.text("All Retrospective Items", 14, yPosition)
@@ -658,7 +658,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
           item.responsiblePerson || "-",
         ])
 
-        // Add category items table
+        // Add category items table using autoTable
         autoTable(doc, {
           startY: yPosition,
           head: [["Author", "Content", "Votes", "Action Item", "Responsible"]],
@@ -676,7 +676,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
           },
         })
 
-        yPosition = doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 10 : yPosition + 10
+        yPosition = (doc as any).lastAutoTable?.finalY + 10
       }
 
       // Save the PDF
