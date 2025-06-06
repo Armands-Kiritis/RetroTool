@@ -71,11 +71,11 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const { t, language, setLanguage } = useLanguage()
   const [board, setBoard] = useState<RetroBoardType | null>(null)
   const [items, setItems] = useState<RetroItem[]>([])
-  const [newItems, setNewItems] = useState({
+  const [newItems, setNewItems] = {
     glad: "",
     mad: "",
     sad: "",
-  })
+  }
   const [loading, setLoading] = useState(false)
   const [editingItem, setEditingItem] = useState<string | null>(null)
   const [editContent, setEditContent] = useState("")
@@ -463,20 +463,20 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   }
 
   // Find the getCategoryColor function and replace it with this version to restore the colored backgrounds
-const getCategoryColor = (category: "glad" | "mad" | "sad") => {
-  // Restore original colored backgrounds for the columns
-  const baseColors = {
-    glad: "bg-green-50 border-green-300",
-    mad: "bg-red-50 border-red-300",
-    sad: "bg-blue-50 border-blue-300",
-  }
+  const getCategoryColor = (category: "glad" | "mad" | "sad") => {
+    // Restore original colored backgrounds for the columns
+    const baseColors = {
+      glad: "bg-green-50 border-green-300",
+      mad: "bg-red-50 border-red-300",
+      sad: "bg-blue-50 border-blue-300",
+    }
 
-  if (board?.isArchived) {
-    return `${baseColors[category]} opacity-60`
-  }
+    if (board?.isArchived) {
+      return `${baseColors[category]} opacity-60`
+    }
 
-  return baseColors[category]
-}
+    return baseColors[category]
+  }
 
   const getCategoryTitle = (category: "glad" | "mad" | "sad") => {
     return t(`retroBoard.${category}`)
@@ -960,7 +960,9 @@ const getCategoryColor = (category: "glad" | "mad" | "sad") => {
                                 <Target className="w-4 h-4" />
                                 Action Item:
                                 {!isCreator && (
-                                  <span className="text-xs text-muted-foreground ml-2">(Only board creator can edit)</span>
+                                  <span className="text-xs text-muted-foreground ml-2">
+                                    (Only board creator can edit)
+                                  </span>
                                 )}
                               </label>
                               {editingActionItem === item.id && isCreator ? (
@@ -1652,10 +1654,8 @@ const getCategoryColor = (category: "glad" | "mad" | "sad") => {
       <div className="container mx-auto p-6">
         <div className="grid md:grid-cols-3 gap-6">
           {(["glad", "mad", "sad"] as const).map((category) => (
-            <Card key={category} className={`${getCategoryColor(category)} border-2`}>
-              <CardHeader>
-                <CardTitle className="text-xl text-primary">{getCategoryTitle(category)}</CardTitle>
-              </CardHeader>
+            <div key={category} className={`${getCategoryColor(category)} rounded-lg p-6 space-y-4`}>
+              <h3 className="text-xl font-semibold text-primary">{getCategoryTitle(category)}</h3>
               <CardContent className="space-y-4">
                 {/* Add new item - only in registering state */}
                 {!board.isArchived && boardStatus === "registering" && (
@@ -1896,12 +1896,16 @@ const getCategoryColor = (category: "glad" | "mad" | "sad") => {
                   ))}
                 </div>
               </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+            </\
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+  )
 }
-
-export default RetroBoard
+</div>
+              </CardContent>
+            </
