@@ -906,8 +906,8 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         {/* Action Planning Content */}
         <div className="container mx-auto p-6">
           <div className="max-w-4xl mx-auto">
-            <Card className="border-2 border-green-300 bg-green-50">
-              <CardHeader>
+            <Card className="border-2 border-primary/20">
+              <CardHeader className="bg-primary/5">
                 <CardTitle className="text-xl text-primary flex items-center gap-2">
                   <Target className="w-5 h-5" />
                   Action Planning - Items with Votes
@@ -916,7 +916,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                   Items are ordered by vote count (highest first). Add action items for each retrospective item.
                 </p>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-6 space-y-4">
                 {actionPlanningItems.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">No items received votes. Go back to voting to add votes.</p>
@@ -924,7 +924,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                 ) : (
                   <div className="space-y-4">
                     {actionPlanningItems.map((item, index) => (
-                      <Card key={item.id} className="bg-white/70 border-primary/20">
+                      <Card key={item.id} className="bg-white border-primary/20">
                         <CardContent className="p-4">
                           <div className="space-y-3">
                             {/* Item header with vote count and category */}
@@ -945,7 +945,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                             </div>
 
                             {/* Retrospective item content */}
-                            <div className="bg-white/50 p-3 rounded-md border border-primary/10">
+                            <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
                               <p className="text-sm text-primary-custom font-medium">{item.content}</p>
                             </div>
 
@@ -985,7 +985,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                 </div>
                               ) : (
                                 <div
-                                  className="min-h-[40px] p-3 border border-primary/20 rounded-md bg-white/50 cursor-pointer hover:bg-white/70 transition-colors flex items-center"
+                                  className="min-h-[40px] p-3 border border-primary/20 rounded-md bg-white cursor-pointer hover:bg-gray-50 transition-colors flex items-center"
                                   onClick={() => startEditActionItem(item)}
                                 >
                                   {item.actionItem ? (
@@ -1289,7 +1289,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
           {(["glad", "mad", "sad"] as const).map((category) => (
             <Card key={category} className={`${getCategoryColor(category)} border-2`}>
               <CardHeader>
-                <CardTitle className="text-xl text-primary">{getCategoryTitle(category)}</CardTitle>
+                <CardTitle className="text-xl text-primary">{getCategoryTitle(category)}</CardHeader>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Add new item - only in registering state */}
