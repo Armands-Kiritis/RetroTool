@@ -1896,16 +1896,12 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                   ))}
                 </div>
               </CardContent>
-            </\
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )
-  )
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
-</div>
-              </CardContent>
-            </
+
+export default RetroBoard;
