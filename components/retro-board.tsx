@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { useUser } from "@/lib/user-context"
 import { useLanguage } from "@/lib/language-context"
@@ -420,6 +422,19 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const renderStatusButtons = () => {
     if (!board || board.isArchived) return null
 
+    const buttonStyle = {
+      backgroundColor: "#1f4e66",
+      color: "white",
+    }
+
+    const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.currentTarget.style.backgroundColor = "#D76500"
+    }
+
+    const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.currentTarget.style.backgroundColor = "#1f4e66"
+    }
+
     switch (board.status) {
       case "registering":
         return (
@@ -429,16 +444,9 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
             onClick={() => updateBoardStatus("voting")}
             disabled={updatingStatus}
             className="text-white transition-colors"
-            style={{
-              backgroundColor: "#1f4e66",
-              color: "white",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#D76500"
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#1f4e66"
-            }}
+            style={buttonStyle}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
           >
             <PlayCircle className="w-4 h-4 mr-2" />
             Start Voting
@@ -446,23 +454,16 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         )
       case "voting":
         return (
-          <div className="flex gap-2">
+          <>
             <Button
               variant="outline"
               size="sm"
               onClick={() => updateBoardStatus("registering")}
               disabled={updatingStatus}
               className="text-white transition-colors"
-              style={{
-                backgroundColor: "#1f4e66",
-                color: "white",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#D76500"
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#1f4e66"
-              }}
+              style={buttonStyle}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
             >
               <ArrowLeftCircle className="w-4 h-4 mr-2" />
               Back to Registering
@@ -473,41 +474,27 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
               onClick={() => updateBoardStatus("action-planning")}
               disabled={updatingStatus}
               className="text-white transition-colors"
-              style={{
-                backgroundColor: "#1f4e66",
-                color: "white",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#D76500"
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#1f4e66"
-              }}
+              style={buttonStyle}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
             >
               <StopCircle className="w-4 h-4 mr-2" />
               Stop Voting
             </Button>
-          </div>
+          </>
         )
       case "action-planning":
         return (
-          <div className="flex gap-2">
+          <>
             <Button
               variant="outline"
               size="sm"
               onClick={() => updateBoardStatus("voting")}
               disabled={updatingStatus}
               className="text-white transition-colors"
-              style={{
-                backgroundColor: "#1f4e66",
-                color: "white",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#D76500"
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#1f4e66"
-              }}
+              style={buttonStyle}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
             >
               <ArrowLeftCircle className="w-4 h-4 mr-2" />
               Back to Voting
@@ -518,41 +505,27 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
               onClick={() => updateBoardStatus("closed")}
               disabled={updatingStatus}
               className="text-white transition-colors"
-              style={{
-                backgroundColor: "#1f4e66",
-                color: "white",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#D76500"
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#1f4e66"
-              }}
+              style={buttonStyle}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
             >
               <LockIcon className="w-4 h-4 mr-2" />
               Close Retrospection
             </Button>
-          </div>
+          </>
         )
       case "closed":
         return (
-          <div className="flex gap-2">
+          <>
             <Button
               variant="outline"
               size="sm"
               onClick={() => updateBoardStatus("action-planning")}
               disabled={updatingStatus}
               className="text-white transition-colors"
-              style={{
-                backgroundColor: "#1f4e66",
-                color: "white",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#D76500"
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#1f4e66"
-              }}
+              style={buttonStyle}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
             >
               <ArrowLeftCircle className="w-4 h-4 mr-2" />
               Back to Action Planning
@@ -563,21 +536,14 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
               onClick={archiveBoard}
               disabled={updatingStatus}
               className="text-white transition-colors"
-              style={{
-                backgroundColor: "#1f4e66",
-                color: "white",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#D76500"
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#1f4e66"
-              }}
+              style={buttonStyle}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
             >
               <Archive className="w-4 h-4 mr-2" />
               Archive
             </Button>
-          </div>
+          </>
         )
       default:
         return null
@@ -769,8 +735,8 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
 
             {/* Status transition buttons and other actions */}
             <div className="flex items-center gap-2">
-              {/* Status transition buttons */}
-              {!board.isArchived && renderStatusButtons()}
+              {/* Status transition buttons - place them next to Timer */}
+              {renderStatusButtons()}
 
               {/* Timer Component */}
               <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} />
