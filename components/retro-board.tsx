@@ -419,7 +419,8 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     }
   }
 
-  const renderStatusButtons = () => {
+  // Status transition buttons
+  const StatusButtons = () => {
     if (!board || board.isArchived) return null
 
     const buttonStyle = {
@@ -428,14 +429,21 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     }
 
     const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.currentTarget.style.backgroundColor = "#D76500"
+      if (!e.currentTarget.disabled) {
+        e.currentTarget.style.backgroundColor = "#D76500"
+      }
     }
 
     const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.currentTarget.style.backgroundColor = "#1f4e66"
+      if (!e.currentTarget.disabled) {
+        e.currentTarget.style.backgroundColor = "#1f4e66"
+      }
     }
 
-    switch (board.status) {
+    // Ensure we have a valid status
+    const status = board.status || "registering"
+
+    switch (status) {
       case "registering":
         return (
           <Button
@@ -736,7 +744,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
             {/* Status transition buttons and other actions */}
             <div className="flex items-center gap-2">
               {/* Status transition buttons - place them next to Timer */}
-              {renderStatusButtons()}
+              {!board.isArchived && <StatusButtons />}
 
               {/* Timer Component */}
               <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} />
