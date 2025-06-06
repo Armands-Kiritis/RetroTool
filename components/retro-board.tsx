@@ -29,7 +29,6 @@ import {
   ChevronRight,
   ChevronDown,
   PlayCircle,
-  StopCircle,
   ArrowLeftCircle,
   CheckCircle,
   LockIcon,
@@ -486,8 +485,8 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
-              <StopCircle className="w-4 h-4 mr-2" />
-              Stop Voting
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Start Action Planning
             </Button>
           </>
         )
@@ -745,6 +744,9 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
             <div className="flex items-center gap-2">
               {/* Status transition buttons - place them next to Timer */}
               {!board.isArchived && <StatusButtons />}
+
+              {/* Add larger gap before Timer */}
+              <div className="w-6"></div>
 
               {/* Timer Component */}
               <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} />
