@@ -463,11 +463,11 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   }
 
   const getCategoryColor = (category: "glad" | "mad" | "sad") => {
-  // Use gray background for all states to match action planning design
+  // Restore original colored backgrounds for the columns
   const baseColors = {
-    glad: "bg-gray-50 border-gray-300",
-    mad: "bg-gray-50 border-gray-300", 
-    sad: "bg-gray-50 border-gray-300",
+    glad: "bg-green-50 border-green-300",
+    mad: "bg-red-50 border-red-300",
+    sad: "bg-blue-50 border-blue-300",
   }
 
   if (board?.isArchived) {
@@ -1896,7 +1896,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default RetroBoard
+export default RetroBoard;
