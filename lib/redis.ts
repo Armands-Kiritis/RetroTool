@@ -15,6 +15,7 @@ export interface RetroItem {
   createdAt: number
   votes: string[] // Array of usernames who voted for this item
   actionItem?: string // Action item for this retrospective item
+  responsiblePerson?: string // Username of the person responsible for the action item
 }
 
 export type BoardStatus = "registering" | "voting" | "action-planning" | "closed"

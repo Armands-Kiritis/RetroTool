@@ -3,7 +3,7 @@ import { redis, type RetroBoard } from "@/lib/redis"
 
 export async function PATCH(request: NextRequest, { params }: { params: { boardId: string; itemId: string } }) {
   try {
-    const { actionItem, userName } = await request.json()
+    const { actionItem, responsiblePerson, userName } = await request.json()
 
     const board = await redis.get<RetroBoard>(`board:${params.boardId}`)
     if (!board) {
@@ -25,8 +25,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { boardI
       return NextResponse.json({ error: "Item not found" }, { status: 404 })
     }
 
-    // Update the action item
+    // Update the action item and responsible person
     board.items[itemIndex].actionItem = actionItem.trim() || undefined
+    board.items[itemIndex].responsiblePerson = responsiblePerson || undefined
     await redis.set(`board:${params.boardId}`, board)
 
     return NextResponse.json(board.items[itemIndex])
