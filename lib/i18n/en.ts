@@ -92,6 +92,18 @@ export const en = {
     cancel: "Cancel",
     editFailed: "Failed to edit item. Please try again.",
     deleteFailed: "Failed to delete item. Please try again.",
+    boardStatus: {
+      registering: "Registering",
+      voting: "Voting",
+      actionPlanning: "Action Planning",
+      closed: "Closed",
+      startVoting: "Start Voting",
+      backToRegistering: "Back to Registering",
+      stopVoting: "Stop Voting",
+      backToVoting: "Back to Voting",
+      closeRetrospection: "Close Retrospection",
+      backToActionPlanning: "Back to Action Planning",
+    },
   },
   timer: {
     setTimer: "Set Timer",

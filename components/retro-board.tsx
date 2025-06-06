@@ -26,6 +26,12 @@ import {
   Globe,
   ChevronRight,
   ChevronDown,
+  PlayCircle,
+  StopCircle,
+  ArrowLeftCircle,
+  CheckCircle,
+  LockIcon,
+  ClipboardList,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -38,7 +44,7 @@ import {
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Timer } from "@/components/timer"
-import type { RetroItem, RetroBoard as RetroBoardType } from "@/lib/redis"
+import type { RetroItem, RetroBoard as RetroBoardType, BoardStatus } from "@/lib/redis"
 import Image from "next/image"
 
 interface RetroBoardProps {
@@ -60,6 +66,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const [editingItem, setEditingItem] = useState<string | null>(null)
   const [editContent, setEditContent] = useState("")
   const [collapsedAuthors, setCollapsedAuthors] = useState<Record<string, boolean>>({})
+  const [updatingStatus, setUpdatingStatus] = useState(false)
 
   const fetchBoard = async () => {
     try {
@@ -188,6 +195,30 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     } catch (error) {
       console.error("Failed to delete item:", error)
       alert(t("retroBoard.deleteFailed"))
+    }
+  }
+
+  const updateBoardStatus = async (status: BoardStatus) => {
+    if (!user || board?.isArchived) return
+
+    setUpdatingStatus(true)
+    try {
+      const response = await fetch(`/api/boards/${boardId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status,
+          userName: user.username || user.name,
+        }),
+      })
+
+      if (response.ok) {
+        fetchBoard()
+      }
+    } catch (error) {
+      console.error("Failed to update board status:", error)
+    } finally {
+      setUpdatingStatus(false)
     }
   }
 
@@ -341,6 +372,218 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     return t("retroBoard.whatMadeYou", { emotion: emotions[category] })
   }
 
+  const getStatusBadgeColor = (status: BoardStatus) => {
+    switch (status) {
+      case "registering":
+        return "bg-blue-100 text-blue-800 border-blue-300"
+      case "voting":
+        return "bg-amber-100 text-amber-800 border-amber-300"
+      case "action-planning":
+        return "bg-green-100 text-green-800 border-green-300"
+      case "closed":
+        return "bg-gray-100 text-gray-800 border-gray-300"
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300"
+    }
+  }
+
+  const getStatusIcon = (status: BoardStatus) => {
+    switch (status) {
+      case "registering":
+        return <ClipboardList className="w-3 h-3 mr-1" />
+      case "voting":
+        return <PlayCircle className="w-3 h-3 mr-1" />
+      case "action-planning":
+        return <CheckCircle className="w-3 h-3 mr-1" />
+      case "closed":
+        return <LockIcon className="w-3 h-3 mr-1" />
+      default:
+        return null
+    }
+  }
+
+  const getStatusLabel = (status: BoardStatus) => {
+    switch (status) {
+      case "registering":
+        return "Registering"
+      case "voting":
+        return "Voting"
+      case "action-planning":
+        return "Action Planning"
+      case "closed":
+        return "Closed"
+      default:
+        return status
+    }
+  }
+
+  const renderStatusButtons = () => {
+    if (!board || board.isArchived) return null
+
+    switch (board.status) {
+      case "registering":
+        return (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => updateBoardStatus("voting")}
+            disabled={updatingStatus}
+            className="text-white transition-colors"
+            style={{
+              backgroundColor: "#1f4e66",
+              color: "white",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#D76500"
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#1f4e66"
+            }}
+          >
+            <PlayCircle className="w-4 h-4 mr-2" />
+            Start Voting
+          </Button>
+        )
+      case "voting":
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => updateBoardStatus("registering")}
+              disabled={updatingStatus}
+              className="text-white transition-colors"
+              style={{
+                backgroundColor: "#1f4e66",
+                color: "white",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#D76500"
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#1f4e66"
+              }}
+            >
+              <ArrowLeftCircle className="w-4 h-4 mr-2" />
+              Back to Registering
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => updateBoardStatus("action-planning")}
+              disabled={updatingStatus}
+              className="text-white transition-colors"
+              style={{
+                backgroundColor: "#1f4e66",
+                color: "white",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#D76500"
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#1f4e66"
+              }}
+            >
+              <StopCircle className="w-4 h-4 mr-2" />
+              Stop Voting
+            </Button>
+          </div>
+        )
+      case "action-planning":
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => updateBoardStatus("voting")}
+              disabled={updatingStatus}
+              className="text-white transition-colors"
+              style={{
+                backgroundColor: "#1f4e66",
+                color: "white",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#D76500"
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#1f4e66"
+              }}
+            >
+              <ArrowLeftCircle className="w-4 h-4 mr-2" />
+              Back to Voting
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => updateBoardStatus("closed")}
+              disabled={updatingStatus}
+              className="text-white transition-colors"
+              style={{
+                backgroundColor: "#1f4e66",
+                color: "white",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#D76500"
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#1f4e66"
+              }}
+            >
+              <LockIcon className="w-4 h-4 mr-2" />
+              Close Retrospection
+            </Button>
+          </div>
+        )
+      case "closed":
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => updateBoardStatus("action-planning")}
+              disabled={updatingStatus}
+              className="text-white transition-colors"
+              style={{
+                backgroundColor: "#1f4e66",
+                color: "white",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#D76500"
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#1f4e66"
+              }}
+            >
+              <ArrowLeftCircle className="w-4 h-4 mr-2" />
+              Back to Action Planning
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={archiveBoard}
+              disabled={updatingStatus}
+              className="text-white transition-colors"
+              style={{
+                backgroundColor: "#1f4e66",
+                color: "white",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#D76500"
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#1f4e66"
+              }}
+            >
+              <Archive className="w-4 h-4 mr-2" />
+              Archive
+            </Button>
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
   if (!board) {
     return (
       <div className="flex items-center justify-center min-h-screen main-bg">
@@ -349,6 +592,8 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     )
   }
 
+  // Handle boards created before status field was added
+  const boardStatus = board.status || "registering"
   const isCreator = board.createdBy === (user?.username || user?.name)
 
   return (
@@ -449,7 +694,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                     <DropdownMenuSeparator />
 
                     {/* Board Actions - only for non-archived boards */}
-                    {!board.isArchived && (
+                    {!board.isArchived && boardStatus !== "closed" && (
                       <>
                         <DropdownMenuItem onClick={archiveBoard} className="cursor-pointer">
                           <Archive className="w-4 h-4 mr-2" />
@@ -491,6 +736,11 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-semibold text-primary-custom">{board.name}</h2>
+                  {/* Board Status Badge */}
+                  <Badge className={`border ${getStatusBadgeColor(boardStatus as BoardStatus)} flex items-center`}>
+                    {getStatusIcon(boardStatus as BoardStatus)}
+                    {getStatusLabel(boardStatus as BoardStatus)}
+                  </Badge>
                   {board.isArchived && (
                     <Badge variant="secondary" className="bg-primary/10 text-primary">
                       <Archive className="w-3 h-3 mr-1" />
@@ -517,8 +767,11 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
               </div>
             </div>
 
-            {/* Moved Timer and Share Link to board info panel */}
+            {/* Status transition buttons and other actions */}
             <div className="flex items-center gap-2">
+              {/* Status transition buttons */}
+              {!board.isArchived && renderStatusButtons()}
+
               {/* Timer Component */}
               <Timer boardId={boardId} timer={board.timer} isArchived={board.isArchived} />
 
@@ -597,8 +850,8 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                 <CardTitle className="text-xl text-primary">{getCategoryTitle(category)}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Add new item - disabled if archived */}
-                {!board.isArchived && (
+                {/* Add new item - disabled if archived or not in registering/voting phase */}
+                {!board.isArchived && (boardStatus === "registering" || boardStatus === "voting") && (
                   <div className="space-y-2">
                     <Textarea
                       placeholder={getEmotionPlaceholder(category)}
@@ -717,57 +970,59 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                     )}
                                   </div>
 
-                                  {item.authorName === (user?.username || user?.name) && !board.isArchived && (
-                                    <div className="flex gap-1">
-                                      {editingItem !== item.id && (
-                                        <>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => toggleItemVisibility(item.id, item.isRevealed)}
-                                            className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
-                                            title={
-                                              item.isRevealed ? t("retroBoard.hideItem") : t("retroBoard.revealItem")
-                                            }
-                                          >
-                                            {item.isRevealed ? (
-                                              <EyeOff className="w-4 h-4 text-primary" />
-                                            ) : (
-                                              <Eye className="w-4 h-4 text-primary" />
-                                            )}
-                                          </Button>
-                                          <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
-                                              >
-                                                <MoreVertical className="w-4 h-4 text-primary" />
-                                              </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="z-50 bg-white">
-                                              <DropdownMenuItem
-                                                onClick={() => startEditItem(item)}
-                                                className="cursor-pointer"
-                                              >
-                                                <Edit3 className="w-4 h-4 mr-2" />
-                                                {t("retroBoard.editItem")}
-                                              </DropdownMenuItem>
-                                              <DropdownMenuSeparator />
-                                              <DropdownMenuItem
-                                                onClick={() => deleteItem(item.id)}
-                                                className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
-                                              >
-                                                <Trash2 className="w-4 h-4 mr-2" />
-                                                {t("retroBoard.deleteItem")}
-                                              </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                          </DropdownMenu>
-                                        </>
-                                      )}
-                                    </div>
-                                  )}
+                                  {item.authorName === (user?.username || user?.name) &&
+                                    !board.isArchived &&
+                                    (boardStatus === "registering" || boardStatus === "voting") && (
+                                      <div className="flex gap-1">
+                                        {editingItem !== item.id && (
+                                          <>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => toggleItemVisibility(item.id, item.isRevealed)}
+                                              className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
+                                              title={
+                                                item.isRevealed ? t("retroBoard.hideItem") : t("retroBoard.revealItem")
+                                              }
+                                            >
+                                              {item.isRevealed ? (
+                                                <EyeOff className="w-4 h-4 text-primary" />
+                                              ) : (
+                                                <Eye className="w-4 h-4 text-primary" />
+                                              )}
+                                            </Button>
+                                            <DropdownMenu>
+                                              <DropdownMenuTrigger asChild>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="shrink-0 hover:bg-primary/10 h-8 w-8 p-0"
+                                                >
+                                                  <MoreVertical className="w-4 h-4 text-primary" />
+                                                </Button>
+                                              </DropdownMenuTrigger>
+                                              <DropdownMenuContent align="end" className="z-50 bg-white">
+                                                <DropdownMenuItem
+                                                  onClick={() => startEditItem(item)}
+                                                  className="cursor-pointer"
+                                                >
+                                                  <Edit3 className="w-4 h-4 mr-2" />
+                                                  {t("retroBoard.editItem")}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                  onClick={() => deleteItem(item.id)}
+                                                  className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                >
+                                                  <Trash2 className="w-4 h-4 mr-2" />
+                                                  {t("retroBoard.deleteItem")}
+                                                </DropdownMenuItem>
+                                              </DropdownMenuContent>
+                                            </DropdownMenu>
+                                          </>
+                                        )}
+                                      </div>
+                                    )}
                                 </div>
 
                                 {item.isRevealed && editingItem !== item.id && (

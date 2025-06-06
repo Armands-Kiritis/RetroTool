@@ -15,6 +15,8 @@ export interface RetroItem {
   createdAt: number
 }
 
+export type BoardStatus = "registering" | "voting" | "action-planning" | "closed"
+
 export interface RetroBoard {
   id: string
   name: string
@@ -26,6 +28,7 @@ export interface RetroBoard {
   isArchived: boolean
   archivedAt?: number
   archivedBy?: string
+  status: BoardStatus // New field for board status
   timer?: {
     startTime: number
     durationMinutes: number
