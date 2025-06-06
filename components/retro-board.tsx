@@ -37,6 +37,7 @@ import {
   ThumbsUp,
   Target,
   FileDown,
+  User,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -90,6 +91,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const [userVotesRemaining, setUserVotesRemaining] = useState(5)
   const [editingActionItem, setEditingActionItem] = useState<string | null>(null)
   const [actionItemContent, setActionItemContent] = useState("")
+  const [responsiblePerson, setResponsiblePerson] = useState("")
 
   const fetchBoard = async () => {
     try {
@@ -202,11 +204,13 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   const startEditActionItem = (item: RetroItem) => {
     setEditingActionItem(item.id)
     setActionItemContent(item.actionItem || "")
+    setResponsiblePerson(item.responsiblePerson || "")
   }
 
   const cancelEditActionItem = () => {
     setEditingActionItem(null)
     setActionItemContent("")
+    setResponsiblePerson("")
   }
 
   const saveActionItem = async (itemId: string) => {
@@ -218,6 +222,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           actionItem: actionItemContent.trim(),
+          responsiblePerson: responsiblePerson || undefined,
           userName: user.username || user.name,
         }),
       })
@@ -225,6 +230,7 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
       if (response.ok) {
         setEditingActionItem(null)
         setActionItemContent("")
+        setResponsiblePerson("")
         fetchBoard()
       } else {
         const error = await response.json()
@@ -559,6 +565,15 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
     }
   }
 
+  // Get all users who have contributed items to the board
+  const getContributors = () => {
+    const contributors = new Set<string>()
+    items.forEach((item) => {
+      contributors.add(item.authorName)
+    })
+    return Array.from(contributors).sort()
+  }
+
   // Now add the exportToPdf function to the RetroBoard component
   // Add this function before the return statement in the RetroBoard component
 
@@ -592,22 +607,24 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
           getCategoryIcon(item.category),
           item.content,
           item.actionItem || "",
+          item.responsiblePerson || "-",
           item.votes?.length || 0,
         ])
 
         // Add action items table
         doc.autoTable({
           startY: 55,
-          head: [["#", "Category", "Item", "Action", "Votes"]],
+          head: [["#", "Category", "Item", "Action", "Responsible", "Votes"]],
           body: actionItemsData,
           headStyles: { fillColor: [31, 78, 102] },
-          styles: { fontSize: 10 },
+          styles: { fontSize: 9 },
           columnStyles: {
-            0: { cellWidth: 10 },
-            1: { cellWidth: 20 },
-            2: { cellWidth: 60 },
-            3: { cellWidth: 60 },
-            4: { cellWidth: 15 },
+            0: { cellWidth: 8 },
+            1: { cellWidth: 15 },
+            2: { cellWidth: 50 },
+            3: { cellWidth: 50 },
+            4: { cellWidth: 25 },
+            5: { cellWidth: 12 },
           },
         })
       } else {
@@ -638,22 +655,24 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
           item.content,
           item.votes?.length || 0,
           item.actionItem || "-",
+          item.responsiblePerson || "-",
         ])
 
         // Add category items table
         doc.autoTable({
           startY: yPosition,
-          head: [["Author", "Content", "Votes", "Action Item"]],
+          head: [["Author", "Content", "Votes", "Action Item", "Responsible"]],
           body: categoryData,
           headStyles: {
             fillColor: category === "glad" ? [34, 197, 94] : category === "mad" ? [239, 68, 68] : [59, 130, 246],
           },
-          styles: { fontSize: 10 },
+          styles: { fontSize: 9 },
           columnStyles: {
-            0: { cellWidth: 30 },
-            1: { cellWidth: 80 },
-            2: { cellWidth: 15 },
-            3: { cellWidth: 50 },
+            0: { cellWidth: 25 },
+            1: { cellWidth: 65 },
+            2: { cellWidth: 12 },
+            3: { cellWidth: 40 },
+            4: { cellWidth: 25 },
           },
         })
 
@@ -1093,13 +1112,31 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                 )}
                               </label>
                               {editingActionItem === item.id && isCreator ? (
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                   <Input
                                     value={actionItemContent}
                                     onChange={(e) => setActionItemContent(e.target.value)}
                                     placeholder="Enter action item for this retrospective item..."
                                     className="border-primary/30 focus:border-primary"
                                   />
+                                  <div>
+                                    <label className="text-sm font-medium text-primary-custom mb-2 block">
+                                      Responsible Person:
+                                    </label>
+                                    <select
+                                      value={responsiblePerson}
+                                      onChange={(e) => setResponsiblePerson(e.target.value)}
+                                      className="w-full p-2 border border-primary/30 rounded-md focus:border-primary focus:outline-none"
+                                    >
+                                      <option value="">Select responsible person...</option>
+                                      {getContributors().map((contributor) => (
+                                        <option key={contributor} value={contributor}>
+                                          {contributor}
+                                          {contributor === (user?.username || user?.name) && " (you)"}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
                                   <div className="flex gap-2">
                                     <Button
                                       size="sm"
@@ -1124,11 +1161,22 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                 <div
                                   className={`min-h-[40px] p-3 border border-primary/20 rounded-md bg-white ${
                                     isCreator ? "cursor-pointer hover:bg-gray-50" : "cursor-not-allowed opacity-75"
-                                  } transition-colors flex items-center`}
+                                  } transition-colors`}
                                   onClick={() => isCreator && startEditActionItem(item)}
                                 >
                                   {item.actionItem ? (
-                                    <p className="text-sm text-primary-custom">{item.actionItem}</p>
+                                    <div className="space-y-2">
+                                      <p className="text-sm text-primary-custom">{item.actionItem}</p>
+                                      {item.responsiblePerson && (
+                                        <div className="flex items-center gap-1">
+                                          <User className="w-3 h-3 text-muted-foreground" />
+                                          <span className="text-xs text-muted-foreground">
+                                            Responsible: {item.responsiblePerson}
+                                            {item.responsiblePerson === (user?.username || user?.name) && " (you)"}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
                                   ) : (
                                     <p className="text-sm text-muted-foreground italic">
                                       {isCreator ? "Click to add action item..." : "No action item set"}
@@ -1404,8 +1452,16 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                 <Target className="w-4 h-4 text-primary" />
                                 <label className="text-sm font-medium text-primary-custom">Action Item:</label>
                               </div>
-                              <div className="p-3 border border-green-300 rounded-md bg-green-50">
+                              <div className="p-3 border border-green-300 rounded-md bg-green-50 space-y-2">
                                 <p className="text-sm text-primary-custom">{item.actionItem}</p>
+                                {item.responsiblePerson && (
+                                  <div className="flex items-center gap-1">
+                                    <User className="w-3 h-3 text-green-700" />
+                                    <span className="text-xs text-green-800">
+                                      Responsible: {item.responsiblePerson}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -1468,12 +1524,20 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                         <CardContent className="p-3">
                                           <p className="text-sm text-primary-custom">{item.content}</p>
                                           {item.actionItem && (
-                                            <div className="mt-2 p-2 border border-green-300 rounded-md bg-green-50">
+                                            <div className="mt-2 p-2 border border-green-300 rounded-md bg-green-50 space-y-1">
                                               <div className="flex items-center gap-1 mb-1">
                                                 <Target className="w-3 h-3 text-green-700" />
                                                 <span className="text-xs font-medium text-green-700">Action:</span>
                                               </div>
                                               <p className="text-xs text-green-800">{item.actionItem}</p>
+                                              {item.responsiblePerson && (
+                                                <div className="flex items-center gap-1">
+                                                  <User className="w-3 h-3 text-green-700" />
+                                                  <span className="text-xs text-green-800">
+                                                    Responsible: {item.responsiblePerson}
+                                                  </span>
+                                                </div>
+                                              )}
                                             </div>
                                           )}
                                           {item.votes && item.votes.length > 0 && (
