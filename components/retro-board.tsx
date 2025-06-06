@@ -463,11 +463,11 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
   }
 
   const getCategoryColor = (category: "glad" | "mad" | "sad") => {
-  // Restore original colored backgrounds for the columns
+  // Use gray backgrounds for all retrospective tiles, same as action planning
   const baseColors = {
-    glad: "bg-green-50 border-green-300",
-    mad: "bg-red-50 border-red-300",
-    sad: "bg-blue-50 border-blue-300",
+    glad: "bg-gray-50 border-gray-300",
+    mad: "bg-gray-50 border-gray-300", 
+    sad: "bg-gray-50 border-gray-300",
   }
 
   if (board?.isArchived) {
@@ -1774,7 +1774,9 @@ export function RetroBoard({ boardId, onLeaveBoard }: RetroBoardProps) {
                                             </div>
                                           </div>
                                         ) : (
-                                          <p className="text-sm text-primary-custom">{item.content}</p>
+                                          <p className="text-sm text-muted-foreground">
+                                            {item.content}
+                                          </p>
                                         )}
                                       </div>
                                     ) : (
